@@ -8,6 +8,8 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "build": "echo 'No build step needed for backend'",
+    "migrate:supabase": "node src/tools/runSupabaseMigrations.js",
+    "seed:supabase": "node src/tools/seedSupabase.js",
     "seed": "node seed-data.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -28,7 +30,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.11.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"

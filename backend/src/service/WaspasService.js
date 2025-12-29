@@ -11,9 +11,9 @@
  * 4. Agregasi: Q_i = 0.5 * S_i + 0.5 * P_i
  * 5. Ranking: Sort by Q_i (descending)
  */
-import KandidatRepository from '../repository/KandidatRepository.supabase.js';
-import KriteriaRepository from '../repository/KriteriaRepository.supabase.js';
-import PenilaianRepository from '../repository/PenilaianRepository.supabase.js';
+import KandidatRepository from '../repository/KandidatRepository.js';
+import KriteriaRepository from '../repository/KriteriaRepository.js';
+import PenilaianRepository from '../repository/PenilaianRepository.js';
 
 class WaspasService {
   /**

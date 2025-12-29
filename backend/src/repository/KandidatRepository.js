@@ -1,74 +1,106 @@
 /**
- * Kandidat Repository
+ * Kandidat Repository (Supabase)
  * Handle semua operasi database untuk tabel Kandidat
  */
-import { getDatabase } from '../database/db.js';
+import supabase from '../config/supabase.js';
 
 class KandidatRepository {
   /**
    * Get semua kandidat
    */
   async getAll() {
-    const db = getDatabase();
-    return await db.all('SELECT * FROM kandidat ORDER BY id');
+    const { data, error } = await supabase
+      .from('kandidat')
+      .select('*')
+      .order('id', { ascending: true });
+
+    if (error) throw new Error(`Failed to get kandidat: ${error.message}`);
+    return data || [];
   }
 
   /**
    * Get kandidat by ID
    */
   async getById(id) {
-    const db = getDatabase();
-    return await db.get('SELECT * FROM kandidat WHERE id = ?', [id]);
+    const { data, error } = await supabase
+      .from('kandidat')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
   }
 
   /**
    * Create kandidat baru
    */
   async create(kandidatData) {
-    const db = getDatabase();
     const { nama, asal_kamar, usia, masa_tinggal, keterangan } = kandidatData;
 
-    const result = await db.run(
-      `INSERT INTO kandidat (nama, asal_kamar, usia, masa_tinggal, keterangan)
-       VALUES (?, ?, ?, ?, ?)`,
-      [nama, asal_kamar, usia, masa_tinggal, keterangan || null]
-    );
+    const { data, error } = await supabase
+      .from('kandidat')
+      .insert([
+        {
+          nama,
+          asal_kamar,
+          usia,
+          masa_tinggal,
+          keterangan: keterangan || null
+        }
+      ])
+      .select();
 
-    return result.lastID;
+    if (error) throw new Error(`Failed to create kandidat: ${error.message}`);
+    return data[0].id;
   }
 
   /**
    * Update kandidat
    */
   async update(id, kandidatData) {
-    const db = getDatabase();
     const { nama, asal_kamar, usia, masa_tinggal, keterangan } = kandidatData;
 
-    await db.run(
-      `UPDATE kandidat 
-       SET nama = ?, asal_kamar = ?, usia = ?, masa_tinggal = ?, keterangan = ?, updated_at = CURRENT_TIMESTAMP
-       WHERE id = ?`,
-      [nama, asal_kamar, usia, masa_tinggal, keterangan || null, id]
-    );
+    const { data, error } = await supabase
+      .from('kandidat')
+      .update({
+        nama,
+        asal_kamar,
+        usia,
+        masa_tinggal,
+        keterangan: keterangan || null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select();
 
-    return await this.getById(id);
+    if (error) throw new Error(`Failed to update kandidat: ${error.message}`);
+    return data[0];
   }
 
   /**
    * Delete kandidat
    */
   async delete(id) {
-    const db = getDatabase();
-    await db.run('DELETE FROM kandidat WHERE id = ?', [id]);
+    const { error } = await supabase
+      .from('kandidat')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw new Error(`Failed to delete kandidat: ${error.message}`);
+    return true;
   }
 
   /**
    * Get kandidat count
    */
   async count() {
-    const db = getDatabase();
-    const result = await db.get('SELECT COUNT(*) as count FROM kandidat');
-    return result.count;
+    const { count, error } = await supabase
+      .from('kandidat')
+      .select('id', { count: 'exact', head: true });
+
+    if (error) throw new Error(`Failed to count kandidat: ${error.message}`);
+    return count || 0;
   }
 }
 

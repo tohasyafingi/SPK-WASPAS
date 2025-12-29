@@ -1,83 +1,104 @@
 /**
- * Kriteria Repository
+ * Kriteria Repository (Supabase)
  * Handle semua operasi database untuk tabel Kriteria
  */
-import { getDatabase } from '../database/db.js';
+import supabase from '../config/supabase.js';
 
 class KriteriaRepository {
   /**
    * Get semua kriteria
    */
   async getAll() {
-    const db = getDatabase();
-    return await db.all('SELECT * FROM kriteria ORDER BY id');
+    const { data, error } = await supabase
+      .from('kriteria')
+      .select('*')
+      .order('id', { ascending: true });
+
+    if (error) throw new Error(`Failed to get kriteria: ${error.message}`);
+    return data || [];
   }
 
   /**
    * Get kriteria by ID
    */
   async getById(id) {
-    const db = getDatabase();
-    return await db.get('SELECT * FROM kriteria WHERE id = ?', [id]);
+    const { data, error } = await supabase
+      .from('kriteria')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
   }
 
   /**
    * Create kriteria baru
    */
   async create(kriteriaData) {
-    const db = getDatabase();
     const { nama_kriteria, bobot, tipe, skala } = kriteriaData;
 
-    const result = await db.run(
-      `INSERT INTO kriteria (nama_kriteria, bobot, tipe, skala)
-       VALUES (?, ?, ?, ?)`
-      , [nama_kriteria, bobot, tipe, skala]
-    );
+    const { data, error } = await supabase
+      .from('kriteria')
+      .insert([
+        {
+          nama_kriteria,
+          bobot: parseFloat(bobot),
+          tipe,
+          skala: skala || '1-10'
+        }
+      ])
+      .select();
 
-    return result.lastID;
+    if (error) throw new Error(`Failed to create kriteria: ${error.message}`);
+    return data[0].id;
   }
 
   /**
    * Update kriteria
    */
   async update(id, kriteriaData) {
-    const db = getDatabase();
     const { nama_kriteria, bobot, tipe, skala } = kriteriaData;
 
-    await db.run(
-      `UPDATE kriteria 
-       SET nama_kriteria = ?, bobot = ?, tipe = ?, skala = ?, updated_at = CURRENT_TIMESTAMP
-       WHERE id = ?`,
-      [nama_kriteria, bobot, tipe, skala, id]
-    );
+    const { data, error } = await supabase
+      .from('kriteria')
+      .update({
+        nama_kriteria,
+        bobot: parseFloat(bobot),
+        tipe,
+        skala: skala || '1-10',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select();
 
-    return await this.getById(id);
+    if (error) throw new Error(`Failed to update kriteria: ${error.message}`);
+    return data[0];
   }
 
   /**
    * Delete kriteria
    */
   async delete(id) {
-    const db = getDatabase();
-    await db.run('DELETE FROM kriteria WHERE id = ?', [id]);
+    const { error } = await supabase
+      .from('kriteria')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw new Error(`Failed to delete kriteria: ${error.message}`);
+    return true;
   }
 
   /**
    * Get kriteria count
    */
   async count() {
-    const db = getDatabase();
-    const result = await db.get('SELECT COUNT(*) as count FROM kriteria');
-    return result.count;
-  }
+    const { count, error } = await supabase
+      .from('kriteria')
+      .select('id', { count: 'exact', head: true });
 
-  /**
-   * Get total bobot (untuk validasi bahwa bobot = 1)
-   */
-  async getTotalBobot() {
-    const db = getDatabase();
-    const result = await db.get('SELECT SUM(bobot) as total FROM kriteria');
-    return result.total || 0;
+    if (error) throw new Error(`Failed to count kriteria: ${error.message}`);
+    return count || 0;
   }
 }
 

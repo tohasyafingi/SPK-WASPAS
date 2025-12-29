@@ -1,157 +1,149 @@
 /**
- * Penilaian Repository
+ * Penilaian Repository (Supabase)
  * Handle semua operasi database untuk tabel Penilaian
  */
-import { getDatabase } from '../database/db.js';
+import supabase from '../config/supabase.js';
 
 class PenilaianRepository {
   /**
    * Get semua penilaian
    */
   async getAll() {
-    const db = getDatabase();
-    return await db.all(`
-      SELECT p.*, k.nama, kr.nama_kriteria, kr.tipe, kr.skala
-      FROM penilaian p
-      JOIN kandidat k ON p.kandidat_id = k.id
-      JOIN kriteria kr ON p.kriteria_id = kr.id
-      ORDER BY p.kandidat_id, p.kriteria_id
-    `);
+    const { data, error } = await supabase
+      .from('penilaian')
+      .select('*')
+      .order('id', { ascending: true });
+
+    if (error) throw new Error(`Failed to get penilaian: ${error.message}`);
+    return data || [];
   }
 
   /**
    * Get penilaian by ID
    */
   async getById(id) {
-    const db = getDatabase();
-    return await db.get(`
-      SELECT p.*, k.nama, kr.nama_kriteria, kr.tipe
-      FROM penilaian p
-      JOIN kandidat k ON p.kandidat_id = k.id
-      JOIN kriteria kr ON p.kriteria_id = kr.id
-      WHERE p.id = ?
-    `, [id]);
+    const { data, error } = await supabase
+      .from('penilaian')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
   }
 
   /**
-   * Get penilaian by kandidat_id dan kriteria_id
+   * Get penilaian by kandidat
    */
-  async getByKandidatAndKriteria(kandidat_id, kriteria_id) {
-    const db = getDatabase();
-    return await db.get(
-      `SELECT * FROM penilaian WHERE kandidat_id = ? AND kriteria_id = ?`,
-      [kandidat_id, kriteria_id]
-    );
+  async getByKandidat(kandidat_id) {
+    const { data, error } = await supabase
+      .from('penilaian')
+      .select('*')
+      .eq('kandidat_id', kandidat_id);
+
+    if (error) throw new Error(`Failed to get penilaian: ${error.message}`);
+    return data || [];
   }
 
   /**
-   * Get semua penilaian untuk satu kandidat
+   * Get penilaian by kandidat ID (alias for getByKandidat)
    */
   async getByKandidatId(kandidat_id) {
-    const db = getDatabase();
-    return await db.all(`
-      SELECT p.*, kr.nama_kriteria, kr.tipe, kr.bobot, kr.skala
-      FROM penilaian p
-      JOIN kriteria kr ON p.kriteria_id = kr.id
-      WHERE p.kandidat_id = ?
-      ORDER BY p.kriteria_id
-    `, [kandidat_id]);
+    return this.getByKandidat(kandidat_id);
   }
 
   /**
-   * Get semua penilaian untuk satu kriteria (untuk normalisasi)
+   * Get penilaian by kandidat and kriteria
+   */
+  async getByKandidatAndKriteria(kandidat_id, kriteria_id) {
+    const { data, error } = await supabase
+      .from('penilaian')
+      .select('*')
+      .eq('kandidat_id', kandidat_id)
+      .eq('kriteria_id', kriteria_id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+  }
+
+  /**
+   * Get penilaian by kriteria ID
    */
   async getByKriteriaId(kriteria_id) {
-    const db = getDatabase();
-    return await db.all(
-      `SELECT * FROM penilaian WHERE kriteria_id = ? ORDER BY nilai DESC`,
-      [kriteria_id]
-    );
+    const { data, error } = await supabase
+      .from('penilaian')
+      .select('*')
+      .eq('kriteria_id', kriteria_id);
+
+    if (error) throw new Error(`Failed to get penilaian: ${error.message}`);
+    return data || [];
   }
 
   /**
    * Create penilaian baru
    */
   async create(penilaianData) {
-    const db = getDatabase();
     const { kandidat_id, kriteria_id, nilai } = penilaianData;
 
-    const result = await db.run(
-      `INSERT INTO penilaian (kandidat_id, kriteria_id, nilai)
-       VALUES (?, ?, ?)`,
-      [kandidat_id, kriteria_id, nilai]
-    );
+    const { data, error } = await supabase
+      .from('penilaian')
+      .insert([
+        {
+          kandidat_id,
+          kriteria_id,
+          nilai: parseFloat(nilai)
+        }
+      ])
+      .select();
 
-    return result.lastID;
+    if (error) throw new Error(`Failed to create penilaian: ${error.message}`);
+    return data[0].id;
   }
 
   /**
    * Update penilaian
    */
   async update(id, penilaianData) {
-    const db = getDatabase();
     const { nilai } = penilaianData;
 
-    await db.run(
-      `UPDATE penilaian 
-       SET nilai = ?, updated_at = CURRENT_TIMESTAMP
-       WHERE id = ?`,
-      [nilai, id]
-    );
+    const { data, error } = await supabase
+      .from('penilaian')
+      .update({
+        nilai: parseFloat(nilai),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select();
 
-    return await this.getById(id);
+    if (error) throw new Error(`Failed to update penilaian: ${error.message}`);
+    return data[0];
   }
 
   /**
    * Delete penilaian
    */
   async delete(id) {
-    const db = getDatabase();
-    await db.run('DELETE FROM penilaian WHERE id = ?', [id]);
+    const { error } = await supabase
+      .from('penilaian')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw new Error(`Failed to delete penilaian: ${error.message}`);
+    return true;
   }
 
   /**
-   * Delete penilaian by kandidat_id dan kriteria_id
+   * Delete penilaian by kandidat
    */
-  async deleteByKandidatAndKriteria(kandidat_id, kriteria_id) {
-    const db = getDatabase();
-    await db.run(
-      `DELETE FROM penilaian WHERE kandidat_id = ? AND kriteria_id = ?`,
-      [kandidat_id, kriteria_id]
-    );
-  }
+  async deleteByKandidat(kandidat_id) {
+    const { error } = await supabase
+      .from('penilaian')
+      .delete()
+      .eq('kandidat_id', kandidat_id);
 
-  /**
-   * Get penilaian count
-   */
-  async count() {
-    const db = getDatabase();
-    const result = await db.get('SELECT COUNT(*) as count FROM penilaian');
-    return result.count;
-  }
-
-  /**
-   * Get max nilai untuk kriteria tertentu
-   */
-  async getMaxNilaiByKriteria(kriteria_id) {
-    const db = getDatabase();
-    const result = await db.get(
-      `SELECT MAX(nilai) as max_nilai FROM penilaian WHERE kriteria_id = ?`,
-      [kriteria_id]
-    );
-    return result.max_nilai || 0;
-  }
-
-  /**
-   * Get min nilai untuk kriteria tertentu (untuk cost)
-   */
-  async getMinNilaiByKriteria(kriteria_id) {
-    const db = getDatabase();
-    const result = await db.get(
-      `SELECT MIN(nilai) as min_nilai FROM penilaian WHERE kriteria_id = ?`,
-      [kriteria_id]
-    );
-    return result.min_nilai || 0;
+    if (error) throw new Error(`Failed to delete penilaian: ${error.message}`);
+    return true;
   }
 }
 

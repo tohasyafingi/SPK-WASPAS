@@ -2,7 +2,7 @@
  * Kriteria Service
  * Business logic untuk Kriteria
  */
-import KriteriaRepository from '../repository/KriteriaRepository.supabase.js';
+import KriteriaRepository from '../repository/KriteriaRepository.js';
 
 class KriteriaService {
   /**

@@ -1,3 +1,24 @@
+# 🚀 Apply Supabase Migrations - Step by Step
+
+Karena keterbatasan network (tidak bisa direct connect ke Supabase Postgres dari machine Anda), gunakan **Supabase Dashboard** untuk apply migrations.
+
+## ✅ Step 1: Buka Supabase Dashboard
+
+1. Buka https://app.supabase.com
+2. Login dengan akun Anda
+3. Pilih project: **zrxlwsnrbvrwltrioolp**
+
+## ✅ Step 2: Buka SQL Editor
+
+1. Di menu kiri, klik **SQL Editor**
+2. Klik **+ New Query** (atau **New SQL Query**)
+3. Beri nama query (optional): `Create SPK WASPAS Tables`
+
+## ✅ Step 3: Copy & Paste Migration SQL
+
+Copy semua SQL di bawah ini dan paste ke SQL Editor:
+
+```sql
 -- SPK WASPAS Supabase Database Schema
 -- Run this SQL in Supabase SQL Editor to create all tables
 
@@ -73,10 +94,68 @@ CREATE TABLE IF NOT EXISTS sessions (
 
 CREATE INDEX idx_sessions_user ON sessions(user_id);
 CREATE INDEX idx_sessions_token ON sessions(token);
+```
 
--- Enable RLS (Row Level Security) if needed
--- ALTER TABLE users ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE kandidat ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE kriteria ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE penilaian ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
+## ✅ Step 4: Run Query
+
+1. Klik tombol **Run** (atau tekan Ctrl+Enter / Cmd+Enter)
+2. Tunggu sampai selesai (biasanya < 5 detik)
+3. Lihat message: `✓ Success` atau `✓ Query executed successfully`
+
+Jika ada error, copy error message dan cek di step 5.
+
+## ✅ Step 5: Verify Tables Created
+
+Setelah query berhasil, verify tables sudah dibuat:
+
+1. Di menu kiri, buka **Table Editor**
+2. Lihat daftar tables:
+   - ✓ `users`
+   - ✓ `kandidat`
+   - ✓ `kriteria`
+   - ✓ `penilaian`
+   - ✓ `sessions`
+
+Semua table harus ada!
+
+## 🌱 Step 6: Seed Data (Optional)
+
+Setelah migrations selesai, jalankan di terminal untuk menambah data awal:
+
+```powershell
+cd backend
+npm run seed:supabase
+```
+
+Ini akan membuat:
+- Admin user: `admin` / `admin123`
+- Regular user: `user` / `user123`
+- Sample data (kandidat, kriteria, penilaian)
+
+## ✅ Step 7: Test Backend
+
+Backend sudah running. Test dengan:
+
+```powershell
+# Test health endpoint
+Invoke-RestMethod http://localhost:5000/api/health
+
+# Test login
+$body = @{username="admin"; password="admin123"} | ConvertTo-Json
+Invoke-RestMethod http://localhost:5000/api/auth/login -Method POST -ContentType "application/json" -Body $body
+```
+
+## 🎯 Troubleshooting
+
+**Error: "relation "users" does not exist"**
+- Migrations belum run. Lakukan Step 3-4 lagi.
+
+**Error: "syntax error"**
+- Ada typo di SQL. Copy ulang dari dokumentasi ini.
+
+**Tabel sudah ada?**
+- Migration idempotent (menggunakan `IF NOT EXISTS`), aman untuk run berkali-kali.
+
+---
+
+**Next:** Setelah migrations selesai, Anda bisa test API menggunakan frontend atau Postman!

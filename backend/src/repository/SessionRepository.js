@@ -1,222 +1,127 @@
 /**
- * Session Repository
- * Menangani semua operasi database untuk sessions
+ * Session Repository (Supabase)
+ * Handle session management
  */
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-import dbConfig from '../config/database.js';
+import supabase from '../config/supabase.js';
 
-let db = null;
-
-/**
- * Get database connection
- */
-async function getDb() {
-  if (!db) {
-    db = await open({
-      filename: dbConfig.dbPath,
-      driver: sqlite3.Database
-    });
+class SessionRepository {
+  async countActiveSessionsByUserId(userId) {
+    const now = new Date().toISOString();
+    const { count, error } = await supabase
+      .from('sessions')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .gt('expires_at', now);
+    if (error) throw new Error(error.message);
+    return count || 0;
   }
-  return db;
-}
 
-/**
- * Create a new session
- */
-export async function createSession(userId, token, deviceName, deviceUA, ipAddress, expiresAt) {
-  try {
-    const database = await getDb();
-    const result = await database.run(
-      `INSERT INTO sessions (user_id, token, device_name, device_ua, ip_address, expires_at)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [userId, token, deviceName, deviceUA, ipAddress, expiresAt]
-    );
-    return result.lastID;
-  } catch (error) {
-    if (error.message.includes('UNIQUE constraint failed')) {
-      // Device already has an active session, update it instead
-      return updateSessionByDeviceName(userId, token, deviceName, deviceUA, ipAddress, expiresAt);
-    }
-    throw error;
+  async deactivateOldestSession(userId) {
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from('sessions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .gt('expires_at', now)
+      .order('created_at', { ascending: true })
+      .limit(1);
+    if (error) throw new Error(error.message);
+    const oldest = (data || [])[0];
+    if (!oldest) return false;
+    const { error: updErr } = await supabase
+      .from('sessions')
+      .update({ is_active: false })
+      .eq('id', oldest.id);
+    if (updErr) throw new Error(updErr.message);
+    return true;
   }
-}
 
-/**
- * Get active sessions for a user
- */
-export async function getActiveSessionsByUserId(userId) {
-  try {
-    const database = await getDb();
-    return await database.all(
-      `SELECT id, user_id, token, device_name, device_ua, ip_address, last_activity, created_at, expires_at
-       FROM sessions
-       WHERE user_id = ? AND is_active = 1 AND expires_at > CURRENT_TIMESTAMP
-       ORDER BY last_activity DESC`,
-      [userId]
-    );
-  } catch (error) {
-    throw error;
+  async createSession(userId, token, deviceName, deviceUa, ipAddress, expiresAt) {
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from('sessions')
+      .insert([
+        {
+          user_id: userId,
+          token,
+          device_name: deviceName,
+          device_ua: deviceUa || null,
+          ip_address: ipAddress || null,
+          last_activity: now,
+          expires_at: expiresAt,
+          is_active: true
+        }
+      ])
+      .select();
+    if (error) throw new Error(error.message);
+    return data[0]?.id;
   }
-}
 
-/**
- * Count active sessions for a user
- */
-export async function countActiveSessionsByUserId(userId) {
-  try {
-    const database = await getDb();
-    const result = await database.get(
-      `SELECT COUNT(*) as count
-       FROM sessions
-       WHERE user_id = ? AND is_active = 1 AND expires_at > CURRENT_TIMESTAMP`,
-      [userId]
-    );
-    return result.count;
-  } catch (error) {
-    throw error;
+  async getActiveSessionsByUserId(userId) {
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from('sessions')
+      .select('id, device_name, device_ua, ip_address, last_activity, created_at, expires_at')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .gt('expires_at', now)
+      .order('last_activity', { ascending: false });
+    if (error) throw new Error(error.message);
+    return data || [];
   }
-}
 
-/**
- * Get session by token
- */
-export async function getSessionByToken(token) {
-  try {
-    const database = await getDb();
-    return await database.get(
-      `SELECT id, user_id, token, device_name, device_ua, ip_address, last_activity, created_at, expires_at, is_active
-       FROM sessions
-       WHERE token = ? AND is_active = 1 AND expires_at > CURRENT_TIMESTAMP`,
-      [token]
-    );
-  } catch (error) {
-    throw error;
+  async invalidateSession(token) {
+    const { error } = await supabase
+      .from('sessions')
+      .update({ is_active: false })
+      .eq('token', token);
+    if (error) throw new Error(error.message);
+    return true;
   }
-}
 
-/**
- * Update session last activity
- */
-export async function updateSessionLastActivity(token) {
-  try {
-    const database = await getDb();
-    return await database.run(
-      `UPDATE sessions
-       SET last_activity = CURRENT_TIMESTAMP
-       WHERE token = ?`,
-      [token]
-    );
-  } catch (error) {
-    throw error;
+  async invalidateAllSessionsByUserId(userId) {
+    const { error } = await supabase
+      .from('sessions')
+      .update({ is_active: false })
+      .eq('user_id', userId);
+    if (error) throw new Error(error.message);
+    return true;
   }
-}
 
-/**
- * Update session by device name (for re-login on same device)
- */
-export async function updateSessionByDeviceName(userId, newToken, deviceName, deviceUA, ipAddress, expiresAt) {
-  try {
-    const database = await getDb();
-    await database.run(
-      `UPDATE sessions
-       SET token = ?, device_ua = ?, ip_address = ?, expires_at = ?, last_activity = CURRENT_TIMESTAMP
-       WHERE user_id = ? AND device_name = ?`,
-      [newToken, deviceUA, ipAddress, expiresAt, userId, deviceName]
-    );
-    
-    // Return the session id
-    const session = await database.get(
-      `SELECT id FROM sessions WHERE user_id = ? AND device_name = ?`,
-      [userId, deviceName]
-    );
-    return session?.id;
-  } catch (error) {
-    throw error;
+  async getSessionByToken(token) {
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from('sessions')
+      .select('*')
+      .eq('token', token)
+      .eq('is_active', true)
+      .gt('expires_at', now)
+      .single();
+    if (error && error.code !== 'PGRST116') throw new Error(error.message);
+    return data || null;
+  }
+
+  async updateSessionLastActivity(token) {
+    const { error } = await supabase
+      .from('sessions')
+      .update({ last_activity: new Date().toISOString() })
+      .eq('token', token);
+    if (error) throw new Error(error.message);
+    return true;
+  }
+
+  async cleanupExpiredSessions() {
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from('sessions')
+      .delete()
+      .lte('expires_at', now)
+      .select('id');
+    if (error) throw new Error(error.message);
+    return { changes: (data || []).length };
   }
 }
 
-/**
- * Deactivate oldest session when max devices exceeded
- */
-export async function deactivateOldestSession(userId) {
-  try {
-    const database = await getDb();
-    return await database.run(
-      `UPDATE sessions
-       SET is_active = 0
-       WHERE user_id = ? AND is_active = 1 AND expires_at > CURRENT_TIMESTAMP
-       AND id = (
-         SELECT id FROM sessions
-         WHERE user_id = ? AND is_active = 1 AND expires_at > CURRENT_TIMESTAMP
-         ORDER BY last_activity ASC
-         LIMIT 1
-       )`,
-      [userId, userId]
-    );
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
- * Invalidate session (logout from specific device)
- */
-export async function invalidateSession(token) {
-  try {
-    const database = await getDb();
-    return await database.run(
-      `UPDATE sessions
-       SET is_active = 0
-       WHERE token = ?`,
-      [token]
-    );
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
- * Invalidate all sessions for a user (logout from all devices)
- */
-export async function invalidateAllSessionsByUserId(userId) {
-  try {
-    const database = await getDb();
-    return await database.run(
-      `UPDATE sessions
-       SET is_active = 0
-       WHERE user_id = ?`,
-      [userId]
-    );
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
- * Clean up expired sessions
- */
-export async function cleanupExpiredSessions() {
-  try {
-    const database = await getDb();
-    return await database.run(
-      `DELETE FROM sessions
-       WHERE expires_at <= CURRENT_TIMESTAMP`
-    );
-  } catch (error) {
-    throw error;
-  }
-}
-
-export default {
-  createSession,
-  getActiveSessionsByUserId,
-  countActiveSessionsByUserId,
-  getSessionByToken,
-  updateSessionLastActivity,
-  updateSessionByDeviceName,
-  deactivateOldestSession,
-  invalidateSession,
-  invalidateAllSessionsByUserId,
-  cleanupExpiredSessions
-};
+export default new SessionRepository();

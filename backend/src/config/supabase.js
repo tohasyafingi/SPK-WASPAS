@@ -2,7 +2,11 @@
  * Supabase Configuration
  * Initialize Supabase client for PostgreSQL database
  */
+import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
+
+// Load environment variables early to avoid import order issues
+dotenv.config();
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;

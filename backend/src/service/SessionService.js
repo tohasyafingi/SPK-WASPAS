@@ -2,7 +2,7 @@
  * Session Service
  * Menangani logic untuk session management multi-device
  */
-import * as SessionRepository from '../repository/SessionRepository.supabase.js';
+import SessionRepository from '../repository/SessionRepository.js';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-change-in-production';

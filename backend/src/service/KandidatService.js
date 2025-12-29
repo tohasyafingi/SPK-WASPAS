@@ -2,7 +2,7 @@
  * Kandidat Service
  * Business logic untuk Kandidat
  */
-import KandidatRepository from '../repository/KandidatRepository.supabase.js';
+import KandidatRepository from '../repository/KandidatRepository.js';
 
 class KandidatService {
   /**
