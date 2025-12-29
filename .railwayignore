@@ -1,0 +1,27 @@
+# Railway Ignore File
+# Exclude dari deployment
+
+.git
+.gitignore
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Documentation
+README.md
+INSTALLATION_GUIDE.md
+START_HERE.md
+RUN_SYSTEM.md
+WELCOME.md
+READY_TO_USE.md
+DEPLOYMENT.md
+RAILWAY_*.md
+
+# Development files
+.vscode
+.idea
+.DS_Store
+*.log
+
+# Only use specific subdirectories during build
+# Railway will be configured via dashboard with proper root directory

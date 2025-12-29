@@ -1,0 +1,30 @@
+/**
+ * Root package.json untuk Railway monorepo
+ * Merupakan meta-package yang tidak di-deploy
+ * Hanya untuk menginformasikan Railway tentang workspace structure
+ */
+{
+  "name": "spk-waspas-monorepo",
+  "version": "1.0.0",
+  "description": "SPK WASPAS Monorepo - Backend (Node.js) + Frontend (React)",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm start",
+    "build:all": "cd backend && npm run build && cd ../frontend && npm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "SPK",
+    "WASPAS",
+    "Decision Support System",
+    "Monorepo"
+  ]
+}
