@@ -4,6 +4,8 @@
  */
 import supabase from '../config/supabase.js';
 
+const INACTIVITY_LIMIT_MINUTES = 30;
+
 class SessionRepository {
   async countActiveSessionsByUserId(userId) {
     const now = new Date().toISOString();
@@ -41,13 +43,8 @@ class SessionRepository {
   async createSession(userId, token, deviceName, deviceUa, ipAddress, expiresAt) {
     const now = new Date().toISOString();
 
-    // Ensure one active session per device name per user to avoid unique constraint violations
-    const { error: delErr } = await supabase
-      .from('sessions')
-      .delete()
-      .eq('user_id', userId)
-      .eq('device_name', deviceName);
-    if (delErr) throw new Error(delErr.message);
+    // Append timestamp to device name to avoid unique constraint on (user_id, device_name)
+    const deviceNameUsed = `${deviceName} #${Date.now()}`;
 
     const { data, error } = await supabase
       .from('sessions')
@@ -55,7 +52,7 @@ class SessionRepository {
         {
           user_id: userId,
           token,
-          device_name: deviceName,
+          device_name: deviceNameUsed,
           device_ua: deviceUa || null,
           ip_address: ipAddress || null,
           last_activity: now,
@@ -65,17 +62,22 @@ class SessionRepository {
       ])
       .select();
     if (error) throw new Error(error.message);
-    return data[0]?.id;
+    return {
+      sessionId: data[0]?.id,
+      deviceNameUsed
+    };
   }
 
   async getActiveSessionsByUserId(userId) {
     const now = new Date().toISOString();
+    const cutoff = new Date(Date.now() - INACTIVITY_LIMIT_MINUTES * 60 * 1000).toISOString();
     const { data, error } = await supabase
       .from('sessions')
       .select('id, device_name, device_ua, ip_address, last_activity, created_at, expires_at')
       .eq('user_id', userId)
       .eq('is_active', true)
       .gt('expires_at', now)
+      .gt('last_activity', cutoff)
       .order('last_activity', { ascending: false });
     if (error) throw new Error(error.message);
     return data || [];
@@ -101,12 +103,14 @@ class SessionRepository {
 
   async getSessionByToken(token) {
     const now = new Date().toISOString();
+    const cutoff = new Date(Date.now() - INACTIVITY_LIMIT_MINUTES * 60 * 1000).toISOString();
     const { data, error } = await supabase
       .from('sessions')
       .select('*')
       .eq('token', token)
       .eq('is_active', true)
       .gt('expires_at', now)
+      .gt('last_activity', cutoff)
       .single();
     if (error && error.code !== 'PGRST116') throw new Error(error.message);
     return data || null;
@@ -123,10 +127,11 @@ class SessionRepository {
 
   async cleanupExpiredSessions() {
     const now = new Date().toISOString();
+    const cutoff = new Date(Date.now() - INACTIVITY_LIMIT_MINUTES * 60 * 1000).toISOString();
     const { data, error } = await supabase
       .from('sessions')
       .delete()
-      .lte('expires_at', now)
+      .or(`expires_at.lte.${now},last_activity.lte.${cutoff}`)
       .select('id');
     if (error) throw new Error(error.message);
     return { changes: (data || []).length };

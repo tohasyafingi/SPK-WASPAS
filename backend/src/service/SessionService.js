@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-change-in-production';
 const JWT_EXPIRE = '7d';
-const MAX_DEVICES_PER_USER = 3;
+const INACTIVITY_LIMIT_MINUTES = 30;
 
 /**
  * Get device name from user agent
@@ -45,27 +45,13 @@ export async function createLoginSession(userId, token, userAgent, ipAddress) {
     // Get device name
     const deviceName = _getDeviceName(userAgent);
     
-    // Count current active sessions
-    let activeSessionCount = await SessionRepository.countActiveSessionsByUserId(userId);
-
-    // If max devices reached, deactivate oldest session
-    if (activeSessionCount >= MAX_DEVICES_PER_USER) {
-      console.log(`[SessionService] Max devices (${MAX_DEVICES_PER_USER}) reached for user ${userId}. Deactivating oldest session...`);
-      await SessionRepository.deactivateOldestSession(userId);
-    }
-
     // Create new session
-    const sessionId = await SessionRepository.createSession(userId, token, deviceName, userAgent, ipAddress, expiresAt);
-
-    // Recount active sessions after potential cleanup
-    activeSessionCount = await SessionRepository.countActiveSessionsByUserId(userId);
-    console.log(`[SessionService] Session created: userId=${userId}, sessionId=${sessionId}, device=${deviceName}`);
+    const { sessionId, deviceNameUsed } = await SessionRepository.createSession(userId, token, deviceName, userAgent, ipAddress, expiresAt);
+    console.log(`[SessionService] Session created: userId=${userId}, sessionId=${sessionId}, device=${deviceNameUsed}`);
     
     return {
       sessionId,
-      deviceName,
-      maxDevices: MAX_DEVICES_PER_USER,
-      activeSessionCount
+      deviceName: deviceNameUsed
     };
   } catch (error) {
     throw new Error(`Failed to create session: ${error.message}`);
@@ -116,6 +102,14 @@ export async function verifySession(token) {
     if (!session) {
       throw new Error('Session not found or expired');
     }
+
+    // Enforce inactivity timeout
+    const cutoff = Date.now() - INACTIVITY_LIMIT_MINUTES * 60 * 1000;
+    const lastActivityTs = new Date(session.last_activity || session.created_at || 0).getTime();
+    if (lastActivityTs < cutoff) {
+      await SessionRepository.invalidateSession(token);
+      throw new Error('Session expired due to inactivity');
+    }
     
     // Update last activity
     await SessionRepository.updateSessionLastActivity(token);
@@ -144,6 +138,5 @@ export default {
   logoutFromDevice,
   logoutFromAllDevices,
   verifySession,
-  cleanupExpiredSessions,
-  MAX_DEVICES_PER_USER
+  cleanupExpiredSessions
 };
