@@ -7,12 +7,11 @@
 - **RAILWAY_QUICK_START.md** - Quick reference 5 menit
 - **RAILWAY_DEPLOYMENT_CHECKLIST.md** - Checklist pre/post deployment
 
-### 2. Configuration Files
-- **backend/railway.json** - Railway config untuk backend (Nixpacks builder)
-- **frontend/railway.json** - Railway config untuk frontend (build + run)
-- **backend/Procfile** - Heroku/Railway compatible process file
+### 3. Configuration Files
 - **backend/.env.example** - Backend env vars template
 - **frontend/.env.example** - Frontend env vars template
+
+Catatan: `railway.json` & `Procfile` dihapus karena tidak compatible dengan monorepo
 
 ### 3. Build & Setup Scripts
 - **backend/railway-build.sh** - Build script untuk backend di Railway
@@ -34,8 +33,6 @@
 
 ---
 
-## 🎯 Langkah Deploy Selanjutnya
-
 ### Quick Deploy (5 Menit)
 
 ```powershell
@@ -47,22 +44,30 @@ git push origin main
 # https://railway.app → Login → New Project → Deploy from GitHub
 
 # 3. Pilih repository SPK-WASPAS → Deploy
+# (akan fail auto-detect, tapi OK - kita setup manual)
 
-# 4. Set environment variables:
-# Backend:
-#   PORT=5000
-#   NODE_ENV=production
-#   JWT_SECRET=[generate]
-#   CORS_ORIGIN=https://frontend-url.railway.app
-#   DB_PATH=/data/spk_waspas.db
+# 4. Buat Service 1: Backend
+# Dashboard → "+ New Service" → "Add Service from GitHub"
+# - Template: Node.js
+# - Root: backend/
+# - Build: npm install
+# - Start: npm start
+# - Port: 5000
+# - Env vars: PORT, NODE_ENV, JWT_SECRET, DB_PATH, CORS_ORIGIN
 
-# Frontend:
-#   REACT_APP_API_URL=https://backend-url.railway.app/api
+# 5. Buat Service 2: Frontend
+# Dashboard → "+ New Service" → "Add Service from GitHub"  
+# - Template: Node.js
+# - Root: frontend/
+# - Build: npm install && npm run build
+# - Start: npm start
+# - Port: 3000
+# - Env vars: REACT_APP_API_URL
 
-# 5. Setup user (di Railway Backend Shell):
+# 6. Setup user di Backend Shell:
 # node railway-setup.js
 
-# DONE! 🎉
+# DONE! 🎉 Akses frontend URL di browser
 ```
 
 ---
