@@ -40,6 +40,15 @@ class SessionRepository {
 
   async createSession(userId, token, deviceName, deviceUa, ipAddress, expiresAt) {
     const now = new Date().toISOString();
+
+    // Ensure one active session per device name per user to avoid unique constraint violations
+    const { error: delErr } = await supabase
+      .from('sessions')
+      .delete()
+      .eq('user_id', userId)
+      .eq('device_name', deviceName);
+    if (delErr) throw new Error(delErr.message);
+
     const { data, error } = await supabase
       .from('sessions')
       .insert([
