@@ -23,6 +23,7 @@ class WaspasService {
     try {
       const kandidats = await KandidatRepository.getAll();
       const kriterias = await KriteriaRepository.getAll();
+      const semuaPenilaian = await PenilaianRepository.getAll();
 
       // Jika belum ada data kandidat atau kriteria, kembalikan hasil kosong tanpa error
       if (kandidats.length === 0 || kriterias.length === 0) {
@@ -30,10 +31,15 @@ class WaspasService {
       }
 
       // Validasi semua kandidat memiliki semua penilaian
+      const penilaianByKandidat = new Map();
+      for (const p of semuaPenilaian) {
+        const list = penilaianByKandidat.get(p.kandidat_id) || [];
+        list.push(p);
+        penilaianByKandidat.set(p.kandidat_id, list);
+      }
       for (const kandidat of kandidats) {
-        const penilaians = await PenilaianRepository.getByKandidatId(kandidat.id);
-        // Jika ada kandidat yang belum lengkap penilaiannya, kembalikan hasil kosong tanpa melempar error
-        if (penilaians.length !== kriterias.length) {
+        const list = penilaianByKandidat.get(kandidat.id) || [];
+        if (list.length !== kriterias.length) {
           return [];
         }
       }
@@ -49,7 +55,7 @@ class WaspasService {
       }));
 
       // Step 1: Normalisasi
-      const normalisasiData = await this._normalisasi(kandidats, normalizedKriterias);
+      const normalisasiData = await this._normalisasi(kandidats, normalizedKriterias, semuaPenilaian);
 
       // Step 2: Hitung WSM (Weighted Sum Model)
       const wsmResults = this._hitungWSM(normalisasiData, normalizedKriterias);
@@ -72,43 +78,35 @@ class WaspasService {
    * - Benefit: r_ij = x_ij / max(x_j)
    * - Cost: r_ij = min(x_j) / x_ij
    */
-  async _normalisasi(kandidats, kriterias) {
+  async _normalisasi(kandidats, kriterias, semuaPenilaian) {
     const normalisasiData = {};
+    // Precompute map untuk akses cepat
+    const nilaiByKandidatKriteria = new Map(); // key `${kandidatId}:${kriteriaId}` -> nilai
+    const valuesByKriteria = new Map(); // kriteriaId -> array nilai
+    for (const p of semuaPenilaian) {
+      nilaiByKandidatKriteria.set(`${p.kandidat_id}:${p.kriteria_id}`, p.nilai);
+      const arr = valuesByKriteria.get(p.kriteria_id) || [];
+      arr.push(p.nilai);
+      valuesByKriteria.set(p.kriteria_id, arr);
+    }
 
     for (const kandidat of kandidats) {
       normalisasiData[kandidat.id] = {};
-
       for (const kriteria of kriterias) {
-        // Dapatkan penilaian kandidat untuk kriteria ini
-        const penilaian = await PenilaianRepository.getByKandidatAndKriteria(
-          kandidat.id,
-          kriteria.id
-        );
-
-        if (!penilaian) {
-          throw new Error(
-            `Penilaian tidak ditemukan untuk kandidat ${kandidat.id} dan kriteria ${kriteria.id}`
-          );
+        const key = `${kandidat.id}:${kriteria.id}`;
+        const nilai = nilaiByKandidatKriteria.get(key);
+        if (nilai === undefined) {
+          throw new Error(`Penilaian tidak ditemukan untuk kandidat ${kandidat.id} dan kriteria ${kriteria.id}`);
         }
-
-        const nilai = penilaian.nilai;
-
-        // Dapatkan semua nilai untuk kriteria ini
-        const allValues = await PenilaianRepository.getByKriteriaId(kriteria.id);
-        const nilaiValues = allValues.map(p => p.nilai);
-
+        const nilaiValues = valuesByKriteria.get(kriteria.id) || [];
         let nilaiNormalisasi;
-
         if (kriteria.tipe === 'benefit') {
-          // Normalisasi benefit: nilai / max
           const maxNilai = Math.max(...nilaiValues);
           nilaiNormalisasi = nilai / maxNilai;
         } else {
-          // Normalisasi cost: min / nilai
           const minNilai = Math.min(...nilaiValues);
           nilaiNormalisasi = minNilai / nilai;
         }
-
         normalisasiData[kandidat.id][kriteria.id] = {
           nilai_asli: nilai,
           nilai_normalisasi: nilaiNormalisasi,
