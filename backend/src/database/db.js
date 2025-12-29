@@ -4,6 +4,8 @@
  */
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
+import path from 'path';
+import fs from 'fs';
 import dbConfig from '../config/database.js';
 
 let db = null;
@@ -13,6 +15,13 @@ let db = null;
  */
 export async function initDatabase() {
   try {
+    // Ensure database directory exists
+    const dbDir = path.dirname(dbConfig.dbPath);
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
+      console.log(`Created database directory: ${dbDir}`);
+    }
+
     db = await open({
       filename: dbConfig.dbPath,
       driver: sqlite3.Database
