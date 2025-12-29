@@ -114,10 +114,57 @@
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+/* Export mode: simplify styles to reduce PDF size */
+.export-mode .hasil-container,
+.export-mode .table-wrapper,
+.export-mode .stat-card,
+.export-mode .modal-content {
+  box-shadow: none !important;
+  background: #ffffff !important;
+}
+.export-mode .header-actions,
+.export-mode .modal-overlay {
+  display: none !important;
+}
+.export-mode * {
+  text-shadow: none !important;
+  filter: none !important;
+  transition: none !important;
+}
+
+/* Export-mode table clarity for html2canvas */
+.export-mode .data-table {
+  box-shadow: none !important;
+  border: 1px solid #d0d5db !important;
+}
+
+.export-mode .data-table th,
+.export-mode .data-table td {
+  border-bottom: 1px solid #d0d5db !important;
+}
+
+.export-mode .data-table thead {
+  background-color: #2c3e50 !important;
+  color: #ffffff !important;
+}
+
+.export-mode .data-table tbody tr:nth-child(odd) {
+  background-color: #f5f7fa !important;
+}
 
 .table-wrapper h2 {
   margin-top: 0;
   color: #2c3e50;
+}
+
+.table-explainer {
+  margin: 8px 0 16px 0;
+  padding: 10px 12px;
+  background-color: #f7fbff;
+  border: 1px solid #dbe9ff;
+  border-radius: 6px;
+  color: #2c3e50;
+  font-size: 13px;
 }
 
 .rank-badge {
@@ -337,5 +384,91 @@
   .detail-table th,
   .detail-table td {
     padding: 8px;
+  }
+}
+
+/* Print-friendly styling for sharp PDF via window.print */
+@page {
+  size: A4 portrait;
+  margin: 12mm;
+}
+
+@media print {
+  /* Hide non-essential UI */
+  .hasil-header .header-actions,
+  .stats-container,
+  .modal-overlay,
+  .btn-refresh,
+  .btn-export {
+    display: none !important;
+  }
+
+  /* Focus on the table content */
+  body,
+  .hasil-container,
+  .table-wrapper {
+    background: #ffffff !important;
+    box-shadow: none !important;
+  }
+
+  .hasil-container {
+    max-width: none;
+    padding: 0;
+  }
+
+  .table-wrapper {
+    padding: 0;
+    border: none;
+  }
+
+  /* Typography adjustments for crisp print */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    text-shadow: none !important;
+    filter: none !important;
+  }
+
+  .table-wrapper h2 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+  }
+
+  /* Ensure table fits page width */
+  .table-wrapper table,
+  .data-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 12px;
+  }
+
+  /* Stronger table grid and readable zebra striping for print */
+  .data-table thead {
+    background-color: #2c3e50 !important;
+    color: #ffffff !important;
+    display: table-header-group; /* repeat header on each page */
+  }
+
+  .data-table th,
+  .data-table td {
+    border: 0.5px solid #d0d5db !important;
+    padding: 8px 10px !important;
+  }
+
+  .data-table tbody tr:nth-child(odd) {
+    background-color: #f5f7fa !important;
+  }
+
+  .data-table tbody tr {
+    page-break-inside: avoid;
+  }
+
+  .detail-table table {
+    font-size: 12px;
+  }
+
+  /* Page breaks for long tables */
+  .table-wrapper table tr {
+    page-break-inside: avoid;
   }
 }

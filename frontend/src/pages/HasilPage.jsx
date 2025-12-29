@@ -5,6 +5,7 @@ import { useApi } from '../hooks/useApi';
 import './HasilPage.css';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { FiRefreshCw, FiFileText, FiX } from 'react-icons/fi';
 import { FaTrophy, FaMedal } from 'react-icons/fa';
 import { TbTrendingUp, TbTrendingDown } from 'react-icons/tb';
@@ -66,12 +67,25 @@ const HasilPage = () => {
     try {
       if (!exportRef.current) return;
       setExporting(true);
-      const canvas = await html2canvas(exportRef.current, {
-        scale: 2,
+
+      // Enable lightweight export styles and simulate print look
+      document.body.classList.add('export-mode', 'simulate-print');
+
+      // Target only the table wrapper for export to reduce PDF size
+      const targetNode = exportRef.current.querySelector('.table-wrapper') || exportRef.current;
+
+      // Increase scale for crisper raster output (may increase size)
+      const scale = Math.min(window.devicePixelRatio || 2, 2);
+      const canvas = await html2canvas(targetNode, {
+        scale,
         useCORS: true,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        removeContainer: true,
+        letterRendering: true
       });
-      const imgData = canvas.toDataURL('image/png');
+
+      // Use JPEG with quality compression instead of PNG
+      const imgData = canvas.toDataURL('image/jpeg', 0.75);
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
@@ -80,15 +94,115 @@ const HasilPage = () => {
 
       let heightLeft = imgHeight;
       let position = 0;
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
       heightLeft -= pdfHeight;
       while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
+        position = -(imgHeight - heightLeft);
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
         heightLeft -= pdfHeight;
       }
       const dateStr = new Date().toISOString().slice(0, 10);
+      pdf.save(`hasil_waspas_${dateStr}.pdf`);
+    } catch (err) {
+      alert('Gagal export PDF: ' + err.message);
+    } finally {
+      document.body.classList.remove('export-mode', 'simulate-print');
+      setExporting(false);
+    }
+  };
+
+  const handlePrintPDF = () => {
+    try {
+      setExporting(true);
+      // Use export-mode to simplify visuals during print
+      document.body.classList.add('export-mode');
+      // Small timeout to allow style application before print dialog
+      setTimeout(() => {
+        window.print();
+        document.body.classList.remove('export-mode');
+        setExporting(false);
+      }, 50);
+    } catch (err) {
+      document.body.classList.remove('export-mode');
+      setExporting(false);
+      alert('Gagal print PDF: ' + err.message);
+    }
+  };
+
+  const handleExportPDFSharp = () => {
+    try {
+      if (!hasil || hasil.length === 0) {
+        alert('Tidak ada data untuk diexport.');
+        return;
+      }
+      setExporting(true);
+      const pdf = new jsPDF('landscape', 'mm', 'a4');
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const title = 'Hasil Ranking WASPAS';
+
+      // Penjelasan singkat untuk pemahaman awam
+      pdf.setFontSize(14);
+      pdf.text(title, 12, 12);
+      pdf.setFontSize(10);
+      pdf.text(`Tanggal: ${dateStr}`, 12, 18);
+      pdf.setFontSize(9);
+      pdf.text('Penjelasan singkat:', 12, 24);
+      pdf.setFontSize(8);
+      pdf.text('• WSM = jumlah tertimbang nilai normalisasi', 12, 29);
+      pdf.text('• WPM = perkalian tertimbang nilai normalisasi', 12, 33);
+      pdf.text('• Qi = gabungan WSM & WPM (rata-rata); nilai lebih besar lebih baik', 12, 37);
+
+      const head = [
+        [
+          'Peringkat',
+          'Nama Kandidat',
+          'Asal Kamar',
+          'Usia',
+          'Masa Tinggal',
+          'Skor WSM',
+          'Skor WPM',
+          'Nilai Akhir (Qi)'
+        ]
+      ];
+      const body = hasil.map(row => [
+        row.rank,
+        row.nama,
+        row.asal_kamar,
+        row.usia,
+        row.masa_tinggal,
+        Number(row.wsm).toFixed(6),
+        Number(row.wpm).toFixed(6),
+        Number(row.qi).toFixed(6)
+      ]);
+
+      autoTable(pdf, {
+        head,
+        body,
+        startY: 42,
+        theme: 'striped',
+        styles: { fontSize: 9, cellPadding: 2 },
+        headStyles: { fillColor: [44, 62, 80], textColor: 255 },
+        alternateRowStyles: { fillColor: [245, 247, 250] },
+        margin: { top: 10, right: 10, bottom: 12, left: 10 },
+        columnStyles: {
+          0: { halign: 'right', cellWidth: 14 },      // rank
+          1: { halign: 'left', cellWidth: 60 },       // nama
+          2: { halign: 'left', cellWidth: 30 },       // asal kamar
+          3: { halign: 'right', cellWidth: 16 },      // usia
+          4: { halign: 'right', cellWidth: 24 },      // masa tinggal
+          5: { halign: 'right', cellWidth: 24 },      // wsm
+          6: { halign: 'right', cellWidth: 24 },      // wpm
+          7: { halign: 'right', cellWidth: 24 },      // qi
+        },
+        didDrawPage: (data) => {
+          const pageStr = `Halaman ${data.pageNumber}`;
+          pdf.setFontSize(9);
+          const pageWidth = pdf.internal.pageSize.getWidth();
+          pdf.text(pageStr, pageWidth - 12 - pdf.getTextWidth(pageStr), pdf.internal.pageSize.getHeight() - 8);
+        }
+      });
+
       pdf.save(`hasil_waspas_${dateStr}.pdf`);
     } catch (err) {
       alert('Gagal export PDF: ' + err.message);
@@ -115,8 +229,8 @@ const HasilPage = () => {
     { key: 'asal_kamar', label: 'Asal Kamar', align: 'center' },
     { key: 'usia', label: 'Usia', align: 'center' },
     { key: 'masa_tinggal', label: 'Masa Tinggal', align: 'center' },
-    { key: 'wsm', label: 'WSM', align: 'center', render: (row) => row.wsm.toFixed(6) },
-    { key: 'wpm', label: 'WPM', align: 'center', render: (row) => row.wpm.toFixed(6) },
+    { key: 'wsm', label: 'Skor WSM (Jumlah Tertimbang)', align: 'center', render: (row) => row.wsm.toFixed(6) },
+    { key: 'wpm', label: 'Skor WPM (Perkalian Tertimbang)', align: 'center', render: (row) => row.wpm.toFixed(6) },
     { 
       key: 'qi', 
       label: 'Nilai Akhir (Qi)',
@@ -134,12 +248,21 @@ const HasilPage = () => {
         <div className="header-actions">
           <button
             className="btn-export"
-            onClick={handleExportPDF}
+            onClick={handleExportPDFSharp}
             disabled={exporting || tableLoading}
-            aria-label="Export ke PDF"
+            aria-label="Export PDF"
           >
             <FiFileText style={{ marginRight: '6px', verticalAlign: 'middle' }} />
             Export PDF
+          </button>
+          <button
+            className="btn-export"
+            onClick={handlePrintPDF}
+            disabled={exporting || tableLoading}
+            aria-label="Print "
+          >
+            <FiFileText style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+            Print
           </button>
           <button 
             className="btn-refresh"
@@ -185,6 +308,9 @@ const HasilPage = () => {
       {/* Tabel Hasil */}
       <div className="table-wrapper">
         <h2>Ranking Kandidat</h2>
+          <p className="table-explainer">
+            Penjelasan kolom: WSM = jumlah tertimbang nilai normalisasi; WPM = perkalian tertimbang nilai normalisasi; Qi = gabungan WSM & WPM (rata-rata). Semakin tinggi Qi, semakin baik peringkat.
+          </p>
         {hasil.length > 0 && (
           <Table
             columns={columns}
