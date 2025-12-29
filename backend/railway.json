@@ -1,0 +1,10 @@
+{
+  "$schema": "https://raw.githubusercontent.com/railwayapp/railway/master/schema.json",
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "numReplicas": 1,
+    "startCommand": "npm start"
+  }
+}

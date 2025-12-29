@@ -411,6 +411,21 @@ cd backend; python init-db.py
 cd backend; node create-users.js
 ```
 
+## 🚀 Deploy ke Railway
+
+Sistem siap di-deploy ke Railway dengan mudah. Lihat **[DEPLOYMENT.md](DEPLOYMENT.md)** untuk panduan lengkap.
+
+**Quick Deploy Summary:**
+1. Push repository ke GitHub
+2. Connect Railway ke GitHub
+3. Set environment variables (JWT_SECRET, CORS_ORIGIN, REACT_APP_API_URL)
+4. Railway otomatis detect monorepo & setup 2 services
+5. Akses aplikasi via Railway provided URL
+
+Supported databases:
+- ✅ SQLite (default, simple setup)
+- ✅ PostgreSQL (recommended untuk production)
+
 ## 📝 Catatan Pengembang
 
 ### Arsitektur Layered
