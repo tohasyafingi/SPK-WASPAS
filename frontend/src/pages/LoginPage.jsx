@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { FiAlertCircle, FiEye, FiEyeOff, FiInfo } from 'react-icons/fi';
 import './LoginPage.css';
 
 export default function LoginPage() {
@@ -62,7 +63,8 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="login-form">
           {error && (
             <div className="error-message">
-              <span>⚠️ {error}</span>
+              <FiAlertCircle style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+              <span>{error}</span>
             </div>
           )}
 
@@ -99,7 +101,7 @@ export default function LoginPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={loading || authLoading}
               >
-                {showPassword ? '🙈' : '👁️'}
+                {showPassword ? <FiEyeOff /> : <FiEye />}
               </button>
             </div>
           </div>
@@ -123,7 +125,7 @@ export default function LoginPage() {
       </div>
 
       <div className="login-info">
-        <h3>ℹ️ Informasi Sistem</h3>
+        <h3><FiInfo style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Informasi Sistem</h3>
         <ul>
           <li>Gunakan username dan password yang diberikan oleh administrator</li>
           <li>Jangan pernah bagikan password Anda kepada orang lain</li>

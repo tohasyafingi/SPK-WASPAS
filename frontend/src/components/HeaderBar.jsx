@@ -17,8 +17,10 @@ export default function HeaderBar({ onToggleSidebar }) {
   const title = titleMap[location.pathname] || 'SPK WASPAS';
 
   const handleLogout = () => {
-    logout();
-    navigate('/login', { replace: true });
+    if (window.confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+      logout();
+      navigate('/login', { replace: true });
+    }
   };
 
   return (
