@@ -8,7 +8,7 @@
 
 ### Langkah 1: Buka PowerShell / CMD - Terminal Pertama
 ```powershell
-cd c:\Users\ThinkPad\Documents\SMT\ 7\SPK\Sistem\backend
+cd backend
 npm install
 npm start
 ```
@@ -26,7 +26,7 @@ Ready to accept requests
 
 ### Langkah 2: Buka PowerShell / CMD - Terminal KEDUA (BARU)
 ```powershell
-cd c:\Users\ThinkPad\Documents\SMT\ 7\SPK\Sistem\frontend
+cd frontend
 npm install
 npm start
 ```
@@ -166,7 +166,7 @@ Get-NetTCPConnection -LocalPort 5000
 # Clear npm cache
 npm cache clean --force
 # Hapus node_modules
-rmdir -r node_modules
+Remove-Item -Recurse -Force node_modules
 # Install ulang
 npm install
 ```
@@ -194,12 +194,9 @@ npm install
 
 ### 3. Input Penilaian (5 menit)
 - Klik menu **Penilaian**
-- Klik **+ Tambah Penilaian**
-- Pilih Kandidat
-- Pilih Kriteria
-- Input Nilai (1-100)
-- Klik **Simpan**
-- Repeat untuk semua kombinasi
+- Tabel tampil pivot (baris: kandidat, kolom: kriteria)
+- Klik **Edit** pada baris kandidat untuk ubah semua nilai sekaligus (modal)
+- Input nilai sesuai skala kriteria (1-10, 1-100, %, jumlah)
 
 ### 4. Lihat Hasil (1 menit)
 - Klik menu **Hasil**
@@ -301,18 +298,10 @@ Sistem SPK WASPAS Anda sudah aktif dan siap digunakan!
 
 ---
 
-**Last Updated**: December 18, 2025  
+**Last Updated**: December 29, 2025  
 **Version**: 1.0.0 FINAL  
 **Status**: ✅ PRODUCTION READY
 
 ---
 
-## 📖 DOKUMENTASI REFERENCE
-
-- **[INDEX.md](INDEX.md)** - Master index
-- **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Project status
-- **[START_HERE.md](START_HERE.md)** - Panduan awal
-- **[README.md](README.md)** - Dokumentasi lengkap
-- **[INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md)** - Guide detail
-
-**Mulai sekarang!** 👉 **Terminal pertama: `cd backend && npm install && npm start`**
+**Mulai sekarang!** 👉 **Terminal pertama: `cd backend; npm install; npm start`**

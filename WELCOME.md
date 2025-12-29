@@ -10,7 +10,7 @@
 Selamat! Anda sudah memiliki **sistem SPK WASPAS yang LENGKAP dan SIAP PAKAI**! 
 
 **Status**: ✅ **PRODUCTION READY**  
-**Tanggal**: December 18, 2025  
+**Tanggal**: December 29, 2025  
 **Versi**: 1.0.0 FINAL  
 
 ---
@@ -63,9 +63,6 @@ Input data dan lihat hasil ranking
 ### 📋 "Saya ingin overview proyek"
 👉 **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** (10 menit)
 
-### 📖 "Saya mencari informasi spesifik"
-👉 **[INDEX.md](INDEX.md)** - Master index untuk navigasi
-
 ### 👨‍💻 "Saya developer, ingin pahami code"
 👉 **[README.md](README.md)** - Dokumentasi teknis lengkap
 
@@ -110,10 +107,7 @@ Sistem/
 │   └── README.md             ← Dokumentasi lengkap
 │
 ├── 🟡 DOKUMENTASI LENGKAP
-│   ├── INSTALLATION_GUIDE.md ← Panduan detail setup
-│   ├── QUICK_REFERENCE.md    ← Quick lookup
-│   ├── PROJECT_SUMMARY.md    ← Status proyek
-│   └── DOCUMENTATION_INDEX.md ← Indeks semua doc
+│   └── INSTALLATION_GUIDE.md ← Panduan detail setup & troubleshooting
 │
 ├── 📁 backend/               ← Express Server (17 files)
 │   ├── src/
@@ -348,7 +342,7 @@ Sistem SPK WASPAS telah dibangun dengan sempurna untuk membantu Anda dalam prose
 
 **Version**: 1.0.0 FINAL  
 **Status**: ✅ PRODUCTION READY  
-**Date**: December 18, 2025  
+**Date**: December 29, 2025  
 
 ---
 
@@ -360,7 +354,7 @@ Sistem SPK WASPAS telah dibangun dengan sempurna untuk membantu Anda dalam prose
 ### ATAU
 
 ### PANDUAN LENGKAP
-**👉 [INDEX.md](INDEX.md)** - Pilih sesuai kebutuhan 📖
+**👉 [README.md](README.md)** - Dokumentasi teknis 📖
 
 ---
 

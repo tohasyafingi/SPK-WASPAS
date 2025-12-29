@@ -30,6 +30,12 @@ cd backend
 node seed.js
 ```
 
+#### **Metode 4: Batch (Windows)**
+```powershell
+cd backend
+./setup-auth.bat
+```
+
 ### 📋 Demo Credentials
 
 Setelah database di-setup, gunakan credentials ini:
@@ -51,7 +57,7 @@ Setelah database di-setup, gunakan credentials ini:
 |----------|--------------------------|--------|
 | Frontend | http://localhost:3000    | ✅ Running |
 | Backend  | http://localhost:5000    | ✅ Running |
-| API Docs | See AUTH_LOGIN_FEATURE.md| ✅ Complete |
+| API Docs | backend/README.md | ✅ Complete |
 
 ### 🔧 Troubleshooting
 

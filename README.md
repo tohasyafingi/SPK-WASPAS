@@ -1,6 +1,6 @@
 # SPK WASPAS - Sistem Pendukung Keputusan Pemilihan Lurah Pondok Pesantren
 
-Sistem informasi berbasis web untuk mendukung pengambilan keputusan pemilihan Lurah Pondok Pesantren menggunakan metode **WASPAS (Weighted Aggregated Sum Product Assessment)**.
+Sistem informasi berbasis web untuk mendukung pengambilan keputusan pemilihan Lurah Pondok Pesantren menggunakan metode **WASPAS (Weighted Aggregated Sum Product Assessment)**. Sistem mencakup autentikasi JWT, tampilan penilaian pivot, form CRUD berbasis modal, dukungan skala kriteria, dan normalisasi bobot otomatis.
 
 ## 📋 Daftar Isi
 
@@ -11,6 +11,7 @@ Sistem informasi berbasis web untuk mendukung pengambilan keputusan pemilihan Lu
 - [Struktur Database](#struktur-database)
 - [API Documentation](#api-documentation)
 - [Metode WASPAS](#metode-waspas)
+- [Autentikasi](#autentikasi)
 - [Lisensi](#lisensi)
 
 ## 🛠️ Stack Teknologi
@@ -25,7 +26,7 @@ Sistem informasi berbasis web untuk mendukung pengambilan keputusan pemilihan Lu
 - **Library**: React 18
 - **Routing**: React Router v6
 - **HTTP Client**: Fetch API
-- **Styling**: CSS3
+- **Styling**: CSS3 (sticky header/sidebar, tabel responsif)
 
 ## ✨ Fitur Utama
 
@@ -36,26 +37,36 @@ Sistem informasi berbasis web untuk mendukung pengambilan keputusan pemilihan Lu
 
 ### 2. Manajemen Kriteria
 - ✅ CRUD kriteria penilaian
-- ✅ Pengaturan bobot kriteria (0-1)
+- ✅ Pengaturan bobot kriteria (0-1, dinormalisasi otomatis saat perhitungan)
 - ✅ Tipe kriteria: Benefit atau Cost
+- ✅ Skala kriteria: 1-10, 1-100, persen, jumlah (mengarahkan placeholder, batas nilai, dan langkah input)
 - ✅ Pengecekan duplikasi kriteria
 
 ### 3. Manajemen Penilaian
 - ✅ Input penilaian kandidat untuk setiap kriteria
-- ✅ Validasi data penilaian
-- ✅ Tampilan penilaian dengan informasi lengkap
+- ✅ Validasi data penilaian, batas nilai sesuai skala kriteria
+- ✅ Tampilan penilaian format pivot (baris: kandidat, kolom: kriteria)
+- ✅ Edit massal penilaian per kandidat via modal
+- ✅ Kolom numerik rata tengah
 
 ### 4. Perhitungan WASPAS
 - ✅ Normalisasi nilai otomatis
 - ✅ Kalkulasi WSM (Weighted Sum Model)
 - ✅ Kalkulasi WPM (Weighted Product Model)
 - ✅ Agregasi hasil dengan formula WASPAS
+- ✅ Normalisasi bobot (Σ w = 1) sebelum perhitungan
 
 ### 5. Hasil dan Ranking
 - ✅ Tampilan ranking kandidat berdasarkan nilai Qi
 - ✅ Visualisasi peringkat dengan badge (🥇🥈🥉)
 - ✅ Detail perhitungan per kandidat
 - ✅ Statistik ringkas (total kandidat, pemenang, dll)
+ - ✅ Kolom numerik (WSM, WPM, Qi, usia, masa tinggal) rata tengah
+
+### 6. UX & Keamanan
+- ✅ Semua form CRUD dalam modal (tambah/edit)
+- ✅ Header sticky dan sidebar fixed
+- ✅ Halaman dilindungi dengan ProtectedRoute (login diperlukan)
 
 ## 📦 Instalasi
 
@@ -65,7 +76,7 @@ Sistem informasi berbasis web untuk mendukung pengambilan keputusan pemilihan Lu
 - Git (opsional)
 
 ### Clone Repository
-```bash
+```powershell
 git clone <repository-url>
 cd SPK-WASPAS
 ```
@@ -73,12 +84,12 @@ cd SPK-WASPAS
 ### Backend Setup
 
 1. **Masuk ke folder backend**
-```bash
+```powershell
 cd backend
 ```
 
 2. **Install dependencies**
-```bash
+```powershell
 npm install
 ```
 
@@ -88,6 +99,7 @@ PORT=5000
 NODE_ENV=development
 DB_PATH=./src/database/spk.db
 CORS_ORIGIN=http://localhost:3000
+JWT_SECRET=change-this-in-production
 ```
 
 4. **Database akan dibuat otomatis** saat server pertama kali dijalankan
@@ -95,12 +107,12 @@ CORS_ORIGIN=http://localhost:3000
 ### Frontend Setup
 
 1. **Masuk ke folder frontend**
-```bash
+```powershell
 cd frontend
 ```
 
 2. **Install dependencies**
-```bash
+```powershell
 npm install
 ```
 
@@ -113,11 +125,14 @@ REACT_APP_API_URL=http://localhost:5000/api
 
 ### Terminal 1: Jalankan Backend
 
-```bash
+```powershell
 cd backend
 npm install
+
+# jalankan server
 npm start
-# Atau gunakan npm run dev untuk development dengan auto-reload
+
+# development dengan auto-reload
 npm run dev
 ```
 
@@ -125,7 +140,7 @@ Server backend akan berjalan di: **http://localhost:5000**
 
 ### Terminal 2: Jalankan Frontend
 
-```bash
+```powershell
 cd frontend
 npm install
 npm start
@@ -156,6 +171,7 @@ CREATE TABLE kriteria (
   nama_kriteria TEXT NOT NULL UNIQUE,
   bobot REAL NOT NULL CHECK(bobot > 0 AND bobot <= 1),
   tipe TEXT NOT NULL CHECK(tipe IN ('benefit', 'cost')),
+  skala TEXT NOT NULL DEFAULT '1-10' CHECK(skala IN ('1-10','1-100','persen','jumlah')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -249,6 +265,8 @@ CREATE TABLE penilaian (
    - Sort kandidat berdasarkan Q_i (descending)
    - Kandidat dengan Q_i tertinggi mendapat ranking terbaik
 
+Catatan bobot: bobot kriteria dinormalisasi sehingga Σ w = 1 sebelum WSM/WPM; masing-masing bobot wajib 0 < w ≤ 1 sesuai constraint DB.
+
 ### Contoh Kasus
 
 Misalkan ada 3 kandidat dan 3 kriteria:
@@ -295,7 +313,8 @@ SPK-WASPAS/
 │   │   │   ├── kandidat.js
 │   │   │   ├── kriteria.js
 │   │   │   ├── penilaian.js
-│   │   │   └── hasil.js
+│   │   │   ├── hasil.js
+│   │   │   └── auth.js
 │   │   ├── middleware/
 │   │   └── index.js
 │   ├── .env
@@ -342,6 +361,7 @@ PORT=5000                          # Port server
 NODE_ENV=development               # Environment
 DB_PATH=./src/database/spk.db      # Path database
 CORS_ORIGIN=http://localhost:3000  # CORS origin
+JWT_SECRET=change-this-in-production
 ```
 
 ### Frontend (.env.local)
@@ -370,6 +390,25 @@ curl -X POST http://localhost:5000/api/kandidat \
 
 # Get hasil ranking
 curl http://localhost:5000/api/hasil
+
+# Login (JWT) dan cek profil
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+# gunakan token dari respons untuk memanggil endpoint protected
+```
+
+## 🔐 Autentikasi
+
+- Login: `POST /api/auth/login` (username, password)
+- Info user saat ini: `GET /api/auth/me` (header `Authorization: Bearer <token>`)
+- Sessions, logout, ganti password tersedia; CRUD user untuk admin.
+
+Quick setup akun demo:
+```powershell
+cd backend; python init-db.py
+# atau
+cd backend; node create-users.js
 ```
 
 ## 📝 Catatan Pengembang

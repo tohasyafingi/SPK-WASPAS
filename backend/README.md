@@ -1,13 +1,17 @@
 # Backend - SPK WASPAS
 
-Express.js Backend untuk Sistem Pendukung Keputusan WASPAS
+Express.js Backend untuk Sistem Pendukung Keputusan WASPAS dengan autentikasi JWT, normalisasi bobot otomatis, dan dukungan skala kriteria.
 
 ## 📦 Setup
 
-```bash
+```powershell
+# dari folder backend
 npm install
+
+# run production
 npm start
-# atau dengan nodemon
+
+# atau development (auto-reload)
 npm run dev
 ```
 
@@ -88,8 +92,9 @@ src/
 {
   id: INTEGER PRIMARY KEY,
   nama_kriteria: TEXT NOT NULL UNIQUE,
-  bobot: REAL NOT NULL (0 < bobot <= 1),
+   bobot: REAL NOT NULL (0 < bobot <= 1),
   tipe: TEXT NOT NULL ('benefit' | 'cost'),
+   skala: TEXT NOT NULL ('1-10' | '1-100' | 'persen' | 'jumlah') DEFAULT '1-10',
   created_at: DATETIME,
   updated_at: DATETIME
 }
@@ -105,6 +110,21 @@ src/
   created_at: DATETIME,
   updated_at: DATETIME,
   UNIQUE(kandidat_id, kriteria_id)
+}
+```
+
+### Users Table (Auth)
+```javascript
+{
+   id: INTEGER PRIMARY KEY,
+   username: TEXT NOT NULL UNIQUE,
+   password: TEXT NOT NULL,
+   email: TEXT,
+   nama_lengkap: TEXT,
+   is_active: INTEGER DEFAULT 1,
+   last_login: DATETIME,
+   created_at: DATETIME,
+   updated_at: DATETIME
 }
 ```
 
@@ -156,6 +176,7 @@ PORT=5000                          # Server port
 NODE_ENV=development               # Environment
 DB_PATH=./src/database/spk.db      # Database file path
 CORS_ORIGIN=http://localhost:3000  # CORS origin
+JWT_SECRET=change-this-in-production  # Secret untuk JWT
 ```
 
 ## 🧮 WASPAS Algorithm
@@ -185,6 +206,10 @@ Qi = 0.5 × WSM + 0.5 × WPM
 ```javascript
 Sort by Qi (descending)
 ```
+
+### Catatan Bobot
+- Input bobot pada tabel kriteria harus berada pada rentang 0 < bobot ≤ 1 (sesuai constraint DB)
+- Sistem akan menormalkan bobot secara otomatis sehingga Σ w = 1 sebelum perhitungan WSM/WPM
 
 ## 🚀 Development Tips
 
@@ -217,6 +242,29 @@ curl -X POST http://localhost:5000/api/kriteria \
 
 # Get hasil ranking
 curl http://localhost:5000/api/hasil
+```
+
+### Auth Endpoints (JWT)
+```bash
+# Login (public)
+curl -X POST http://localhost:5000/api/auth/login \
+   -H "Content-Type: application/json" \
+   -d '{"username":"admin","password":"admin123"}'
+
+# With token (ganti <TOKEN>)
+curl http://localhost:5000/api/auth/me -H "Authorization: Bearer <TOKEN>"
+```
+
+Quick setup akun demo (pilih salah satu):
+```powershell
+# Python (paling mudah)
+cd backend; python init-db.py
+
+# Node.js script
+cd backend; node create-users.js
+
+# Seed awal (opsional, isi sampel)
+cd backend; node seed.js
 ```
 
 ## 📝 Best Practices
@@ -256,6 +304,8 @@ Pesan: "Bobot harus berupa angka antara 0 < bobot ≤ 1"
 - `sqlite`: Query builder
 - `cors`: CORS middleware
 - `dotenv`: Environment variables
+ - `jsonwebtoken`: JWT handling
+ - `bcryptjs`: Password hashing
 
 ## 🔐 Security Considerations
 

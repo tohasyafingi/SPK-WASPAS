@@ -8,7 +8,7 @@
 - ✅ Terminal/Command Prompt
 
 ### Step 1: Buka Backend
-```bash
+```powershell
 cd backend
 npm install
 npm start
@@ -16,7 +16,7 @@ npm start
 ✅ Backend berjalan di `http://localhost:5000`
 
 ### Step 2: Buka Frontend (Terminal Baru)
-```bash
+```powershell
 cd frontend
 npm install
 npm start
@@ -32,12 +32,12 @@ npm start
 ### A. INSTALASI BACKEND
 
 #### 1. Masuk folder backend
-```bash
+```powershell
 cd backend
 ```
 
 #### 2. Install dependencies
-```bash
+```powershell
 npm install
 ```
 
@@ -55,16 +55,17 @@ PORT=5000
 NODE_ENV=development
 DB_PATH=./src/database/spk.db
 CORS_ORIGIN=http://localhost:3000
+JWT_SECRET=change-this-in-production
 ```
 
 #### 4. Jalankan server
 **Production:**
-```bash
+```powershell
 npm start
 ```
 
 **Development (with auto-reload):**
-```bash
+```powershell
 npm run dev
 ```
 
@@ -84,12 +85,12 @@ Jika berhasil, akan melihat:
 ### B. INSTALASI FRONTEND
 
 #### 1. Masuk folder frontend
-```bash
+```powershell
 cd frontend
 ```
 
 #### 2. Install dependencies
-```bash
+```powershell
 npm install
 ```
 
@@ -100,7 +101,7 @@ REACT_APP_API_URL=http://localhost:5000/api
 ```
 
 #### 4. Jalankan aplikasi
-```bash
+```powershell
 npm start
 ```
 
@@ -122,8 +123,9 @@ Browser secara otomatis membuka `http://localhost:3000`
 2. Klik tombol **"+ Tambah Kriteria"**
 3. Isi form:
    - **Nama Kriteria**: Contoh "Kepribadian"
-   - **Bobot**: Contoh 0.4 (rentang 0-1)
+   - **Bobot**: Contoh 0.4 (0<w≤1; dinormalisasi sebelum perhitungan)
    - **Tipe**: Pilih "Benefit" atau "Cost"
+   - **Skala**: Pilih "1-10", "1-100", "persen", atau "jumlah"
 4. Klik **"Simpan"**
 
 **Contoh Kriteria yang Bisa Ditambahkan:**
@@ -163,12 +165,9 @@ Keterangan: Siswa aktif dan berprestasi
 
 **Langkah:**
 1. Klik menu **"Penilaian"** di navbar
-2. Klik tombol **"+ Tambah Penilaian"**
-3. Isi form:
-   - **Kandidat**: Pilih nama kandidat
-   - **Kriteria**: Pilih kriteria
-   - **Nilai**: Masukkan nilai/skor
-4. Klik **"Simpan"**
+2. Tabel tampil dalam format pivot (baris: kandidat, kolom: kriteria)
+3. Klik tombol **"Edit"** pada baris kandidat untuk mengisi/ubah semua nilai sekaligus (modal)
+4. Nilai akan dibatasi sesuai skala kriteria (placeholder, min, max, step)
 
 **Contoh Input:**
 ```
@@ -179,7 +178,7 @@ Nilai: 85
 
 📝 **Catatan:** Setiap kombinasi Kandidat-Kriteria harus memiliki satu penilaian.
 
-**Tips:** Masukkan semua penilaian untuk semua kandidat terhadap semua kriteria sebelum melihat hasil.
+**Tips:** Pastikan semua kandidat memiliki penilaian lengkap untuk semua kriteria sebelum melihat hasil.
 
 ---
 

@@ -1,10 +1,10 @@
 # Frontend - SPK WASPAS
 
-React Frontend untuk Sistem Pendukung Keputusan WASPAS
+React Frontend untuk Sistem Pendukung Keputusan WASPAS dengan autentikasi, tabel pivot penilaian, form modal, dan layout sticky.
 
 ## 📦 Setup
 
-```bash
+```powershell
 npm install
 npm start
 ```
@@ -16,27 +16,39 @@ Aplikasi akan berjalan di `http://localhost:3000`
 ```
 src/
 ├── components/
-│   ├── Form.jsx           # Komponen form generic CRUD
+│   ├── Form.jsx             # Komponen form generic CRUD (modal-friendly)
 │   ├── Form.css
-│   ├── Table.jsx          # Komponen tabel responsif
-│   └── Table.css
+│   ├── Modal.jsx            # Komponen modal reusable (sizes)
+│   ├── Modal.css
+│   ├── Table.jsx            # Komponen tabel responsif (align per kolom)
+│   ├── Table.css
+│   ├── HeaderBar.jsx        # Header sticky
+│   ├── Sidebar.jsx          # Sidebar fixed
+│   └── ProtectedRoute.jsx   # Guard route berbasis auth
 ├── pages/
-│   ├── KandidatPage.jsx   # Halaman CRUD Kandidat
-│   ├── KriteriaPage.jsx   # Halaman CRUD Kriteria
-│   ├── PenilaianPage.jsx  # Halaman CRUD Penilaian
-│   ├── HasilPage.jsx      # Halaman Hasil Ranking
+│   ├── KandidatPage.jsx     # Halaman CRUD Kandidat (modal)
+│   ├── KriteriaPage.jsx     # Halaman CRUD Kriteria (skala & bobot)
+│   ├── PenilaianPage.jsx    # Halaman Penilaian (tabel pivot + edit massal via modal)
+│   ├── HasilPage.jsx        # Halaman Hasil Ranking (detail modal)
+│   ├── LoginPage.jsx        # Halaman Login
+│   ├── Dashboard.jsx        # Beranda/dashboard
 │   ├── CRUD.css
-│   └── HasilPage.css
+│   ├── HasilPage.css
+│   └── LoginPage.css
+├── layouts/
+│   └── MainLayout.jsx       # Layout utama dengan header+sidebar
 ├── services/
-│   └── apiService.js      # API service untuk call backend
+│   ├── apiService.js        # API wrapper
+│   └── authService.js       # Layanan auth (login/logout/getMe)
 ├── config/
-│   └── api.js             # API endpoints configuration
+│   └── api.js               # API endpoints configuration
 ├── hooks/
-│   └── useApi.js          # Custom hook untuk API calls
+│   ├── useApi.js            # Custom hook untuk API calls
+│   └── useAuth.js           # State auth (token, user)
 ├── App.jsx                # Main App component
 ├── App.css
 ├── index.js               # Entry point
-└── index.html
+└── public/index.html
 ```
 
 ## 🎯 Halaman-Halaman
@@ -52,16 +64,16 @@ src/
 - Edit data kandidat
 - Hapus kandidat
 
-### 3. Manajemen Kriteria (/kriteria)
+### 2. Manajemen Kriteria (/kriteria)
 - Daftar semua kriteria
-- Tambah kriteria baru
-- Set bobot dan tipe kriteria
-- Edit dan hapus kriteria
+- Tambah/Edit via modal
+- Set bobot (0-1), tipe (benefit/cost), dan skala (1-10/1-100/persen/jumlah)
+- Hapus kriteria
 
 ### 4. Manajemen Penilaian (/penilaian)
-- Input penilaian untuk setiap kandidat-kriteria
-- Edit dan hapus penilaian
-- Validasi data penilaian
+- Tampilan pivot (baris: kandidat, kolom: kriteria)
+- Edit massal per kandidat via modal
+- Validasi & pembatasan nilai berdasarkan skala kriteria
 
 ### 5. Hasil Ranking (/hasil)
 - Tampilkan ranking kandidat berdasarkan nilai Qi
@@ -75,6 +87,7 @@ Semua API calls menggunakan fetch API yang di-wrapper di `apiService.js`:
 
 ```javascript
 import { kandidatAPI, kriteriaAPI, penilaianAPI, hasilAPI } from '../services/apiService';
+import { login, getMe, logout } from '../services/authService';
 
 // Contoh usage
 const data = await kandidatAPI.getAll();
@@ -85,7 +98,7 @@ const result = await kandidatAPI.create({ nama, asal_kamar, usia, masa_tinggal }
 
 Menggunakan CSS3 dengan design system:
 - **Color**: Primary (#3498db), Success (#27ae60), Error (#e74c3c)
-- **Layout**: Flexbox dan CSS Grid
+- **Layout**: Header sticky + Sidebar fixed
 - **Responsive**: Mobile-first approach
 
 ## 🧩 Custom Hooks
@@ -109,7 +122,7 @@ Generic form untuk CRUD dengan:
 
 ### Table Component
 Generic table dengan:
-- Custom columns
+- Custom columns (support `align: 'left'|'center'|'right'`)
 - Edit/Delete actions
 - Loading dan error states
 - Responsive design
@@ -120,6 +133,7 @@ Generic table dengan:
 2. **Network Tab**: Debug API calls di browser DevTools
 3. **Console Errors**: Cek console browser untuk error messages
 4. **API URL**: Default di `http://localhost:5000/api`, ubah di `.env.local` jika berbeda
+5. **ProtectedRoute**: Lindungi halaman dengan token JWT dari login
 
 ## 📝 Best Practices
 

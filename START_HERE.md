@@ -14,7 +14,7 @@ Pastikan Anda sudah memiliki:
 - ✅ **Browser modern** (Chrome, Firefox, Safari, Edge)
 
 **Cek instalasi Node.js:**
-```bash
+```powershell
 node --version
 npm --version
 ```
@@ -34,24 +34,19 @@ v18.12.1
 - **Mac/Linux**: Buka Terminal
 
 ### 1.2 Masuk ke folder backend
-```bash
-cd "c:\Users\ThinkPad\Documents\SMT 7\SPK\Sistem\backend"
-```
-
-Atau jika Anda di folder yang berbeda:
-```bash
-cd Sistem/backend
+```powershell
+cd backend
 ```
 
 ### 1.3 Install dependencies
-```bash
+```powershell
 npm install
 ```
 
 Tunggu sampai selesai (bisa 1-2 menit). Jika ada warning, abaikan.
 
 ### 1.4 Jalankan server
-```bash
+```powershell
 npm start
 ```
 
@@ -76,19 +71,19 @@ Jangan tutup terminal backend yang tadi!
 - **Mac/Linux**: Buka Terminal baru
 
 ### 2.2 Masuk ke folder frontend
-```bash
-cd "c:\Users\ThinkPad\Documents\SMT 7\SPK\Sistem\frontend"
+```powershell
+cd ../frontend
 ```
 
 ### 2.3 Install dependencies
-```bash
+```powershell
 npm install
 ```
 
 Tunggu sampai selesai (bisa 2-3 menit).
 
 ### 2.4 Jalankan aplikasi
-```bash
+```powershell
 npm start
 ```
 
@@ -108,10 +103,11 @@ Sekarang halaman utama tampil dengan menu di atas.
 
 1. Klik menu **"Kriteria"**
 2. Klik **"+ Tambah Kriteria"**
-3. Isi form:
+3. Isi form (modal):
    - **Nama Kriteria**: "Kepribadian"
-   - **Bobot**: 0.3
-   - **Tipe**: Pilih "Benefit"
+   - **Bobot**: 0.3 (0<w≤1; dinormalisasi otomatis)
+   - **Tipe**: "Benefit" atau "Cost"
+   - **Skala**: "1-10" (opsi lain: 1-100, persen, jumlah)
 4. Klik **"Simpan"**
 
 **Ulangi untuk kriteria lainnya:**
@@ -123,7 +119,7 @@ Sekarang halaman utama tampil dengan menu di atas.
 ### 3.2 Input Data Kandidat
 
 1. Klik menu **"Kandidat"**
-2. Klik **"+ Tambah Kandidat"**
+2. Klik **"+ Tambah Kandidat"** (modal)
 3. Isi form contoh:
    - **Nama**: "Ahmad Budiman"
    - **Asal Kamar**: "Kamar 5"
@@ -141,14 +137,11 @@ Sekarang halaman utama tampil dengan menu di atas.
 ### 3.3 Input Penilaian
 
 1. Klik menu **"Penilaian"**
-2. Klik **"+ Tambah Penilaian"**
-3. Isi form:
-   - **Kandidat**: Pilih "Ahmad Budiman"
-   - **Kriteria**: Pilih "Kepribadian"
-   - **Nilai**: 85
-4. Klik **"Simpan"**
+2. Tabel tampil dalam format pivot (baris: kandidat, kolom: kriteria)
+3. Gunakan tombol **Edit** pada baris kandidat untuk mengedit semua nilai sekaligus (modal)
+4. Nilai dibatasi sesuai skala kriteria (placeholder/min/max/step menyesuaikan)
 
-**Lanjutkan untuk semua kombinasi** (3 kandidat × 3 kriteria = 9 penilaian):
+**Contoh data** (3 kandidat × 3 kriteria = 9 penilaian):
 
 | Kandidat | Kepribadian | Pengalaman | Loyalitas |
 |----------|------------|-----------|-----------|
@@ -167,7 +160,7 @@ Sekarang halaman utama tampil dengan menu di atas.
    - Nilai WSM, WPM, Qi
    - Statistik (pemenang, total kandidat)
 
-4. Klik **"Edit"** pada baris kandidat untuk melihat detail perhitungan
+4. Klik **"Detail"** pada baris kandidat untuk melihat rincian normalisasi, kontribusi WSM, dan WPM
 
 ✅ **Selesai!** Anda sudah menggunakan sistem SPK WASPAS!
 
@@ -217,15 +210,11 @@ Sekarang halaman utama tampil dengan menu di atas.
 
 ## 📚 DOKUMENTASI LENGKAP
 
-Jika Anda ingin tahu lebih detail, baca file:
-
+Baca:
 1. **README.md** - Dokumentasi lengkap & reference
 2. **INSTALLATION_GUIDE.md** - Panduan instalasi & troubleshooting
-3. **QUICK_REFERENCE.md** - Quick reference commands
-4. **FILE_CHECKLIST.md** - Daftar semua file yang ada
-5. **COMPLETION_REPORT.md** - Laporan proyek
-6. **backend/README.md** - Dokumentasi backend teknis
-7. **frontend/README.md** - Dokumentasi frontend teknis
+3. **backend/README.md** - Dokumentasi backend teknis (API & WASPAS)
+4. **frontend/README.md** - Dokumentasi frontend teknis
 
 ---
 
@@ -259,8 +248,8 @@ npm start
 
 ## 💡 TIPS BERGUNA
 
-✅ **Gunakan skala nilai konsisten** (0-100 recommended)  
-✅ **Bobot kriteria total sebaiknya 1.0** (optional)  
+✅ **Gunakan skala sesuai kriteria** (1-10, 1-100, %, jumlah)  
+✅ **Bobot total akan dinormalisasi otomatis**  
 ✅ **Lihat detail perhitungan** untuk memahami ranking  
 ✅ **Refresh halaman jika ada masalah** (Ctrl+R atau Cmd+R)  
 ✅ **Clear browser cache** jika stuck (Ctrl+Shift+Delete)  
