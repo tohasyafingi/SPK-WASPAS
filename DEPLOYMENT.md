@@ -15,19 +15,15 @@ Sistem SPK WASPAS siap untuk di-deploy ke Railway dengan mudah.
 
 ## 🏗️ Arsitektur Deployment Railway
 
-Railway mendukung 2 pendekatan:
+Untuk monorepo dengan backend (Node.js) + frontend (React), Railway support:
 
-### ✅ Opsi 1: Monorepo (Rekomendasi)
-- Satu repository dengan `backend/` dan `frontend/` folder
-- Satu Railway project dengan 2 services
-- Lebih mudah untuk maintain dan sync
+### ✅ Recommended: Separate Services (Satu project, 2 services)
+- Satu GitHub repository dengan `backend/` dan `frontend/`
+- Satu Railway project dengan 2 services terpisah
+- Setiap service dengan konfigurasi sendiri (root dir, build cmd, start cmd)
+- Lebih mudah untuk scale dan monitor
 
-### Opsi 2: Separate Repos
-- Backend dan frontend di repository terpisah
-- Railway project terpisah untuk masing-masing
-- Lebih kompleks setup di awal
-
-**Kami gunakan: Opsi 1 (Monorepo)** ✅
+**Kami gunakan: Approach ini** ✅
 
 ---
 
@@ -56,89 +52,98 @@ Railway akan otomatis mendeteksi struktur monorepo.
 
 ### Step 3: Konfigurasi Backend Service
 
-Di Railway dashboard:
+Di Railway dashboard setelah deploy otomatis mendeteksi:
 
-1. **Settings → Environment**
-   - Pastikan sudah ada environment variable:
-     ```
-     PORT=5000
-     NODE_ENV=production
-     JWT_SECRET=generate-random-key-here-min-32-chars
-     CORS_ORIGIN=https://your-frontend-url.railway.app
-     DB_PATH=/data/spk_waspas.db
-     ```
+1. **Klik "New Service" → Add from GitHub**
+   - Pilih `SPK-WASPAS` repository
+   - Railway akan tanya template, pilih `Node.js`
 
-2. **Deployment**
-   - Root Directory: `backend`
+2. **Settings → Deploy**
+   - Root Directory: `backend` ⭐ PENTING
    - Build Command: `npm install`
    - Start Command: `npm start`
    - Port: `5000`
 
-3. **PostgreSQL** (Optional - lebih production-ready)
-   - Klik **+ Add Resource → PostgreSQL**
-   - Gunakan **DATABASE_URL** environment variable
+3. **Settings → Variables**
+   - PORT: `5000`
+   - NODE_ENV: `production`
+   - JWT_SECRET: [generate random string 32+ chars]
+   - CORS_ORIGIN: [akan update setelah frontend deploy]
+   - DB_PATH: `/data/spk_waspas.db`
+
+Backend siap! Railway akan auto-build & deploy.
 
 ### Step 4: Konfigurasi Frontend Service
 
-Di Railway dashboard:
+Tambah service baru untuk frontend:
 
-1. **Settings → Environment**
-   - REACT_APP_API_URL=`https://your-backend-url.railway.app/api`
+1. **New Service → Add from GitHub**
+   - Pilih `SPK-WASPAS` repository (sama)
+   - Railway akan tanya template, pilih `Node.js` (walaupun React)
 
-2. **Build & Deploy**
-   - Root Directory: `frontend`
+2. **Settings → Deploy**
+   - Root Directory: `frontend` ⭐ PENTING
    - Build Command: `npm install && npm run build`
-   - Start Command: `npm start` (atau custom server)
+   - Start Command: `npm start`
    - Port: `3000`
 
-3. **Networking**
-   - Domain: Railway auto-assign public URL
-   - Update CORS_ORIGIN di backend dengan URL ini
+3. **Settings → Variables**
+   - REACT_APP_API_URL: `https://[backend-service-name].railway.app/api`
+   - (Ganti [backend-service-name] dengan nama service backend di Railway)
 
-### Step 5: Database Migration
+Frontend siap! Railway akan auto-build & deploy.
 
-Opsi 1: **SQLite** (Persisten di Railway)
+### Step 6: Setup First User
+
+**Method 1: Railway Shell** (Recommended)
 ```bash
-# Railway sudah tahu DB_PATH=/data/spk_waspas.db
-# Database akan dibuat otomatis saat startup
-# Persisten via volume
+# Di Railway Backend service
+# Klik "Shell" tab → run:
+node railway-setup.js
+
+# Tunggu hingga selesai, akan create admin & user
 ```
 
-Opsi 2: **PostgreSQL** (Recommended)
-- Change backend code ke pg atau prisma
-- Atau gunakan SQLite untuk MVP, upgrade later
-
-### Step 6: Setup User Pertama
-
-**Metode A: Railway Shell**
+**Method 2: Manual via Node Script**
 ```bash
-# Di Railway dashboard, buka Backend service
-# Klik "Shell" tab
-# Run:
+cd backend
 node create-users.js
-# atau
-python init-db.py
 ```
 
-**Metode B: Auto-seed via Node Script**
-```bash
-# Tambah ke backend/package.json:
-"seed": "node seed-data.js"
-
-# Di Railway, buat "Run" trigger untuk seed
+Setelah selesai, demo credentials:
+```
+Admin:  admin / admin123
+User:   user  / user123
 ```
 
-**Metode C: API Call**
-```bash
-curl -X POST https://your-backend.railway.app/api/auth/users \
-  -H "Authorization: Bearer <ADMIN_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin123","role":"admin"}'
-```
+⚠️ **CHANGE PASSWORDS IMMEDIATELY IN PRODUCTION!**
 
 ---
 
-## 🔐 Security Setup
+## 📊 Railway Services Configuration Summary
+
+Setelah semua setup, Railway project Anda akan terlihat:
+
+```
+Railway Project: SPK-WASPAS
+├── Service 1: spk-backend
+│   ├─ Status: Running ✅
+│   ├─ URL: https://spk-backend-xxx.railway.app
+│   ├─ Port: 5000
+│   ├─ Root Dir: backend/
+│   ├─ Env: NODE_ENV=production, JWT_SECRET=..., etc
+│   └─ DB: SQLite /data/spk_waspas.db
+│
+└── Service 2: spk-frontend
+    ├─ Status: Running ✅
+    ├─ URL: https://spk-frontend-xxx.railway.app
+    ├─ Port: 3000
+    ├─ Root Dir: frontend/
+    ├─ Env: REACT_APP_API_URL=https://spk-backend-xxx.railway.app/api
+    └─ Build: npm install && npm run build
+```
+
+---
 
 ### JWT Secret Generation
 
