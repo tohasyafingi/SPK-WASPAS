@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Form from '../components/Form';
 import Table from '../components/Table';
+import Modal from '../components/Modal';
 import { kandidatAPI } from '../services/apiService';
 import { useApi } from '../hooks/useApi';
 import './CRUD.css';
@@ -99,36 +100,44 @@ const KandidatPage = () => {
   return (
     <div className="page-container">
       <h1>Manajemen Kandidat</h1>
-      
-      {!showForm && !editingId && (
-        <button 
-          className="btn-primary"
-          onClick={() => setShowForm(true)}
-        >
-          + Tambah Kandidat
-        </button>
-      )}
 
-      {showForm && (
+      <button 
+        className="btn-primary"
+        onClick={() => setShowForm(true)}
+      >
+        + Tambah Kandidat
+      </button>
+
+      <Modal
+        isOpen={showForm}
+        onClose={handleCancel}
+        title="Tambah Kandidat Baru"
+        size="medium"
+      >
         <Form
-          title="Tambah Kandidat Baru"
+          title=""
           fields={kandidatFields}
           onSubmit={handleCreate}
           onCancel={handleCancel}
           loading={loading}
         />
-      )}
+      </Modal>
 
-      {editingId && (
+      <Modal
+        isOpen={!!editingId}
+        onClose={handleCancel}
+        title="Edit Kandidat"
+        size="medium"
+      >
         <Form
-          title="Edit Kandidat"
+          title=""
           fields={kandidatFields}
           initialData={editingData}
           onSubmit={handleUpdate}
           onCancel={handleCancel}
           loading={loading}
         />
-      )}
+      </Modal>
 
       <Table
         columns={columns}

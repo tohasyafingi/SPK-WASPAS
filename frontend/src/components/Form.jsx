@@ -64,8 +64,8 @@ const Form = ({
   };
 
   return (
-    <div className="form-container">
-      <h2>{title}</h2>
+    <div className="form-container" style={{ background: 'transparent', boxShadow: 'none', padding: '0', margin: '0' }}>
+      {title && <h2>{title}</h2>}
       <form onSubmit={handleSubmit}>
         {fields.map((field) => (
           <div key={field.name} className="form-group">

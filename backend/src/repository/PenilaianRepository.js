@@ -11,7 +11,7 @@ class PenilaianRepository {
   async getAll() {
     const db = getDatabase();
     return await db.all(`
-      SELECT p.*, k.nama, kr.nama_kriteria, kr.tipe
+      SELECT p.*, k.nama, kr.nama_kriteria, kr.tipe, kr.skala
       FROM penilaian p
       JOIN kandidat k ON p.kandidat_id = k.id
       JOIN kriteria kr ON p.kriteria_id = kr.id
@@ -50,7 +50,7 @@ class PenilaianRepository {
   async getByKandidatId(kandidat_id) {
     const db = getDatabase();
     return await db.all(`
-      SELECT p.*, kr.nama_kriteria, kr.tipe, kr.bobot
+      SELECT p.*, kr.nama_kriteria, kr.tipe, kr.bobot, kr.skala
       FROM penilaian p
       JOIN kriteria kr ON p.kriteria_id = kr.id
       WHERE p.kandidat_id = ?

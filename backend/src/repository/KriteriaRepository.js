@@ -26,12 +26,12 @@ class KriteriaRepository {
    */
   async create(kriteriaData) {
     const db = getDatabase();
-    const { nama_kriteria, bobot, tipe } = kriteriaData;
+    const { nama_kriteria, bobot, tipe, skala } = kriteriaData;
 
     const result = await db.run(
-      `INSERT INTO kriteria (nama_kriteria, bobot, tipe)
-       VALUES (?, ?, ?)`,
-      [nama_kriteria, bobot, tipe]
+      `INSERT INTO kriteria (nama_kriteria, bobot, tipe, skala)
+       VALUES (?, ?, ?, ?)`
+      , [nama_kriteria, bobot, tipe, skala]
     );
 
     return result.lastID;
@@ -42,13 +42,13 @@ class KriteriaRepository {
    */
   async update(id, kriteriaData) {
     const db = getDatabase();
-    const { nama_kriteria, bobot, tipe } = kriteriaData;
+    const { nama_kriteria, bobot, tipe, skala } = kriteriaData;
 
     await db.run(
       `UPDATE kriteria 
-       SET nama_kriteria = ?, bobot = ?, tipe = ?, updated_at = CURRENT_TIMESTAMP
+       SET nama_kriteria = ?, bobot = ?, tipe = ?, skala = ?, updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
-      [nama_kriteria, bobot, tipe, id]
+      [nama_kriteria, bobot, tipe, skala, id]
     );
 
     return await this.getById(id);

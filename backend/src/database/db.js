@@ -58,10 +58,21 @@ export async function initDatabase() {
         nama_kriteria TEXT NOT NULL UNIQUE,
         bobot REAL NOT NULL CHECK(bobot > 0 AND bobot <= 1),
         tipe TEXT NOT NULL CHECK(tipe IN ('benefit', 'cost')),
+        skala TEXT NOT NULL DEFAULT '1-10' CHECK(skala IN ('1-10', '1-100', 'persen', 'jumlah')),
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Tambah kolom skala jika database lama belum punya kolom ini
+    // Menggunakan try/catch agar tidak gagal bila kolom sudah ada
+    try {
+      await db.exec(`ALTER TABLE kriteria ADD COLUMN skala TEXT NOT NULL DEFAULT '1-10' CHECK(skala IN ('1-10', '1-100', 'persen', 'jumlah'))`);
+    } catch (alterErr) {
+      if (!alterErr.message.includes('duplicate column name')) {
+        throw alterErr;
+      }
+    }
 
     // Create Penilaian table
     await db.exec(`

@@ -49,38 +49,12 @@ async function seedUsers() {
       );
     });
 
-    // Create regular user
-    await new Promise((resolve, reject) => {
-      db.run(
-        `INSERT INTO users (username, password, email, nama_lengkap, role, is_active)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        ['user', userPassword, 'user@pesantren.ac.id', 'Regular User', 'user', 1],
-        function(err) {
-          if (err) {
-            if (err.message.includes('UNIQUE constraint failed')) {
-              console.log('⚠️  User account already exists, skipping...');
-              resolve();
-            } else {
-              reject(err);
-            }
-          } else {
-            console.log('\n✅ Regular user created successfully');
-            console.log('   Username: user');
-            console.log('   Password: user123');
-            console.log('   Role: user');
-            resolve();
-          }
-        }
-      );
-    });
-
     console.log('\n✅ Database seeding completed!\n');
     console.log('📋 Demo Credentials:');
     console.log('   ┌─────────────┬──────────┬────────┐');
     console.log('   │ Username    │ Password │ Role   │');
     console.log('   ├─────────────┼──────────┼────────┤');
     console.log('   │ admin       │ admin123 │ admin  │');
-    console.log('   │ user        │ user123  │ user   │');
     console.log('   └─────────────┴──────────┴────────┘\n');
     console.log('⚠️  IMPORTANT: Change these passwords in production!\n');
 

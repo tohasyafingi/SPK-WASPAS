@@ -38,14 +38,24 @@ class WaspasService {
         }
       }
 
+      // Pastikan bobot ternormalisasi (Σ w_j = 1)
+      const totalBobot = kriterias.reduce((sum, k) => sum + (k.bobot || 0), 0);
+      if (totalBobot <= 0) {
+        throw new Error('Total bobot kriteria harus lebih besar dari 0');
+      }
+      const normalizedKriterias = kriterias.map(k => ({
+        ...k,
+        bobot_norm: k.bobot / totalBobot
+      }));
+
       // Step 1: Normalisasi
-      const normalisasiData = await this._normalisasi(kandidats, kriterias);
+      const normalisasiData = await this._normalisasi(kandidats, normalizedKriterias);
 
       // Step 2: Hitung WSM (Weighted Sum Model)
-      const wsmResults = this._hitungWSM(normalisasiData, kriterias);
+      const wsmResults = this._hitungWSM(normalisasiData, normalizedKriterias);
 
       // Step 3: Hitung WPM (Weighted Product Model)
-      const wpmResults = this._hitungWPM(normalisasiData, kriterias);
+      const wpmResults = this._hitungWPM(normalisasiData, normalizedKriterias);
 
       // Step 4: Agregasi (WASPAS)
       const hasil = this._agregasi(wsmResults, wpmResults, kandidats);
@@ -102,7 +112,8 @@ class WaspasService {
         normalisasiData[kandidat.id][kriteria.id] = {
           nilai_asli: nilai,
           nilai_normalisasi: nilaiNormalisasi,
-          tipe: kriteria.tipe
+          tipe: kriteria.tipe,
+          bobot_norm: kriteria.bobot_norm ?? kriteria.bobot
         };
       }
     }
@@ -122,7 +133,7 @@ class WaspasService {
 
       for (const kriteria of kriterias) {
         const rij = normalisasiData[kandidatId][kriteria.id].nilai_normalisasi;
-        const wj = kriteria.bobot;
+        const wj = kriteria.bobot_norm ?? kriteria.bobot;
         wsm += wj * rij;
       }
 
@@ -144,7 +155,7 @@ class WaspasService {
 
       for (const kriteria of kriterias) {
         const rij = normalisasiData[kandidatId][kriteria.id].nilai_normalisasi;
-        const wj = kriteria.bobot;
+        const wj = kriteria.bobot_norm ?? kriteria.bobot;
         wpm *= Math.pow(rij, wj);
       }
 
@@ -201,7 +212,15 @@ class WaspasService {
         throw new Error('Kandidat tidak ditemukan');
       }
 
-      const kriterias = await KriteriaRepository.getAll();
+      const kriteriasRaw = await KriteriaRepository.getAll();
+      const totalBobot = kriteriasRaw.reduce((sum, k) => sum + (k.bobot || 0), 0);
+      if (totalBobot <= 0) {
+        throw new Error('Total bobot kriteria harus lebih besar dari 0');
+      }
+      const kriterias = kriteriasRaw.map(k => ({
+        ...k,
+        bobot_norm: k.bobot / totalBobot
+      }));
       const penilaians = await PenilaianRepository.getByKandidatId(kandidatId);
 
       const detail = {
@@ -232,13 +251,13 @@ class WaspasService {
           detail.penilaian_detail.push({
             kriteria_id: kriteria.id,
             nama_kriteria: kriteria.nama_kriteria,
-            bobot: kriteria.bobot,
+            bobot: kriteria.bobot_norm,
             tipe: kriteria.tipe,
             nilai_asli: penilaian.nilai,
             nilai_normalisasi: parseFloat(nilaiNormalisasi.toFixed(6)),
             rumus_normalisasi: rumus,
-            kontribusi_wsm: parseFloat((kriteria.bobot * nilaiNormalisasi).toFixed(6)),
-            kontribusi_wpm: parseFloat((kriteria.bobot * Math.log(nilaiNormalisasi)).toFixed(6))
+            kontribusi_wsm: parseFloat((kriteria.bobot_norm * nilaiNormalisasi).toFixed(6)),
+            kontribusi_wpm: parseFloat((kriteria.bobot_norm * Math.log(nilaiNormalisasi)).toFixed(6))
           });
         }
       }

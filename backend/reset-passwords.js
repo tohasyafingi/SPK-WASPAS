@@ -50,43 +50,10 @@ async function resetPasswords() {
       );
     });
 
-    // Update user password
-    await new Promise((resolve, reject) => {
-      db.run(
-        `UPDATE users SET password = ? WHERE username = ?`,
-        [userPassword, 'user'],
-        function(err) {
-          if (err) {
-            reject(err);
-          } else if (this.changes > 0) {
-            console.log('✅ User password updated');
-            console.log('   Username: user');
-            console.log('   Password: user123\n');
-            resolve();
-          } else {
-            console.log('⚠️  Regular user not found, creating...');
-            // Insert if not exists
-            db.run(
-              `INSERT INTO users (username, password, email, nama_lengkap, role, is_active)
-               VALUES (?, ?, ?, ?, ?, ?)`,
-              ['user', userPassword, 'user@pesantren.ac.id', 'Regular User', 'user', 1],
-              function(err2) {
-                if (err2) reject(err2);
-                else {
-                  console.log('✅ Regular user created');
-                  resolve();
-                }
-              }
-            );
-          }
-        }
-      );
-    });
 
     console.log('✅ Password reset complete!\n');
     console.log('📋 You can now login with:');
     console.log('   Admin: admin / admin123');
-    console.log('   User:  user / user123\n');
 
   } catch (error) {
     console.error('❌ Error:', error.message);

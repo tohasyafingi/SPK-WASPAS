@@ -44,8 +44,16 @@ class PenilaianService {
    * Update penilaian dengan validasi
    */
   async update(id, penilaianData) {
-    await this.getById(id); // Validate ID exists
-    await this._validatePenilaianData(penilaianData, false);
+    const existing = await this.getById(id); // pastikan data ada
+
+    // Gabungkan kandidat_id dan kriteria_id dari data lama jika tidak dikirim dari client
+    const mergedData = {
+      kandidat_id: penilaianData.kandidat_id || existing.kandidat_id,
+      kriteria_id: penilaianData.kriteria_id || existing.kriteria_id,
+      nilai: penilaianData.nilai
+    };
+
+    await this._validatePenilaianData(mergedData, false);
     return await PenilaianRepository.update(id, penilaianData);
   }
 

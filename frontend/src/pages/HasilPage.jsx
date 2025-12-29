@@ -101,6 +101,7 @@ const HasilPage = () => {
     { 
       key: 'rank', 
       label: 'Peringkat',
+      align: 'center',
       render: (row) => (
         <span className={`rank-badge rank-${row.rank}`}>
           {row.rank === 1 && <FaMedal style={{ marginRight: '4px' }} />}
@@ -111,14 +112,15 @@ const HasilPage = () => {
       )
     },
     { key: 'nama', label: 'Nama Kandidat' },
-    { key: 'asal_kamar', label: 'Asal Kamar' },
-    { key: 'usia', label: 'Usia' },
-    { key: 'masa_tinggal', label: 'Masa Tinggal' },
-    { key: 'wsm', label: 'WSM', render: (row) => row.wsm.toFixed(6) },
-    { key: 'wpm', label: 'WPM', render: (row) => row.wpm.toFixed(6) },
+    { key: 'asal_kamar', label: 'Asal Kamar', align: 'center' },
+    { key: 'usia', label: 'Usia', align: 'center' },
+    { key: 'masa_tinggal', label: 'Masa Tinggal', align: 'center' },
+    { key: 'wsm', label: 'WSM', align: 'center', render: (row) => row.wsm.toFixed(6) },
+    { key: 'wpm', label: 'WPM', align: 'center', render: (row) => row.wpm.toFixed(6) },
     { 
       key: 'qi', 
       label: 'Nilai Akhir (Qi)',
+      align: 'center',
       render: (row) => (
         <span className="qi-value">{row.qi.toFixed(6)}</span>
       )

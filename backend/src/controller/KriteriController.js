@@ -37,12 +37,13 @@ export const getKriteriaById = async (req, res) => {
 
 export const createKriteria = async (req, res) => {
   try {
-    const { nama_kriteria, bobot, tipe } = req.body;
+    const { nama_kriteria, bobot, tipe, skala } = req.body;
 
     const id = await KriteriaService.create({
       nama_kriteria,
       bobot: parseFloat(bobot),
-      tipe
+      tipe,
+      skala
     });
 
     res.status(201).json({
@@ -61,12 +62,13 @@ export const createKriteria = async (req, res) => {
 export const updateKriteria = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nama_kriteria, bobot, tipe } = req.body;
+    const { nama_kriteria, bobot, tipe, skala } = req.body;
 
     const kriteria = await KriteriaService.update(parseInt(id), {
       nama_kriteria,
       bobot: parseFloat(bobot),
-      tipe
+      tipe,
+      skala
     });
 
     res.json({

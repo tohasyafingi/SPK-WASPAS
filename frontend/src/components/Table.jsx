@@ -31,7 +31,9 @@ const Table = ({
         <thead>
           <tr>
             {columns.map((col) => (
-              <th key={col.key}>{col.label}</th>
+              <th key={col.key} style={{ textAlign: col.align || 'left' }}>
+                {col.label}
+              </th>
             ))}
             {(onEdit || onDelete) && <th>Aksi</th>}
           </tr>
@@ -40,7 +42,7 @@ const Table = ({
           {data.map((row, idx) => (
             <tr key={row.id || idx}>
               {columns.map((col) => (
-                <td key={`${row.id}-${col.key}`}>
+                <td key={`${row.id}-${col.key}`} style={{ textAlign: col.align || 'left' }}>
                   {col.render ? col.render(row) : row[col.key]}
                 </td>
               ))}

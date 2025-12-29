@@ -63,6 +63,14 @@ class KriteriaService {
     if (!['benefit', 'cost'].includes(data.tipe)) {
       throw new Error('Tipe harus "benefit" atau "cost"');
     }
+
+    const skala = data.skala || '1-10';
+    if (!['1-10', '1-100', 'persen', 'jumlah'].includes(skala)) {
+      throw new Error('Skala harus salah satu dari 1-10, 1-100, persen, atau jumlah');
+    }
+
+    // Normalisasi skala agar selalu terset
+    data.skala = skala;
   }
 }
 

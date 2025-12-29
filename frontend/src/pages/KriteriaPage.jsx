@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Form from '../components/Form';
 import Table from '../components/Table';
+import Modal from '../components/Modal';
 import { kriteriaAPI } from '../services/apiService';
 import { useApi } from '../hooks/useApi';
 import './CRUD.css';
@@ -22,6 +23,18 @@ const KriteriaPage = () => {
   const kriteriaFields = [
     { name: 'nama_kriteria', label: 'Nama Kriteria', type: 'text', required: true, placeholder: 'Masukkan nama kriteria' },
     { name: 'bobot', label: 'Bobot (0-1)', type: 'number', required: true, min: 0.01, max: 1, step: 0.01 },
+    {
+      name: 'skala',
+      label: 'Skala Penilaian',
+      type: 'select',
+      required: true,
+      options: [
+        { value: '1-10', label: '1-10' },
+        { value: '1-100', label: '1-100' },
+        { value: 'persen', label: 'Persen (%)' },
+        { value: 'jumlah', label: 'Jumlah (count)' }
+      ]
+    },
     { 
       name: 'tipe', 
       label: 'Tipe Kriteria', 
@@ -75,7 +88,7 @@ const KriteriaPage = () => {
 
   const handleEdit = (row) => {
     setEditingId(row.id);
-    setEditingData(row);
+    setEditingData({ ...row, skala: row.skala || '1-10' });
     setShowForm(false);
   };
 
@@ -99,7 +112,8 @@ const KriteriaPage = () => {
   const columns = [
     { key: 'no', label: 'No' },
     { key: 'nama_kriteria', label: 'Nama Kriteria' },
-    { key: 'bobot', label: 'Bobot' },
+    { key: 'bobot', label: 'Bobot', align: 'center' },
+    { key: 'skala', label: 'Skala', align: 'center' },
     { key: 'tipe', label: 'Tipe', render: (row) => (
       row.tipe === 'benefit' ? (
         <><TbTrendingUp style={{ marginRight: '4px', verticalAlign: 'middle' }} />Benefit</>
@@ -112,36 +126,44 @@ const KriteriaPage = () => {
   return (
     <div className="page-container">
       <h1>Manajemen Kriteria</h1>
-      
-      {!showForm && !editingId && (
-        <button 
-          className="btn-primary"
-          onClick={() => setShowForm(true)}
-        >
-          + Tambah Kriteria
-        </button>
-      )}
 
-      {showForm && (
+      <button 
+        className="btn-primary"
+        onClick={() => setShowForm(true)}
+      >
+        + Tambah Kriteria
+      </button>
+
+      <Modal
+        isOpen={showForm}
+        onClose={handleCancel}
+        title="Tambah Kriteria Baru"
+        size="medium"
+      >
         <Form
-          title="Tambah Kriteria Baru"
+          title=""
           fields={kriteriaFields}
           onSubmit={handleCreate}
           onCancel={handleCancel}
           loading={loading}
         />
-      )}
+      </Modal>
 
-      {editingId && (
+      <Modal
+        isOpen={!!editingId}
+        onClose={handleCancel}
+        title="Edit Kriteria"
+        size="medium"
+      >
         <Form
-          title="Edit Kriteria"
+          title=""
           fields={kriteriaFields}
           initialData={editingData}
           onSubmit={handleUpdate}
           onCancel={handleCancel}
           loading={loading}
         />
-      )}
+      </Modal>
 
       <Table
         columns={columns}
