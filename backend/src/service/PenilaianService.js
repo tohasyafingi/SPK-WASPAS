@@ -2,9 +2,9 @@
  * Penilaian Service
  * Business logic untuk Penilaian
  */
-import PenilaianRepository from '../repository/PenilaianRepository.js';
-import KandidatRepository from '../repository/KandidatRepository.js';
-import KriteriaRepository from '../repository/KriteriaRepository.js';
+import PenilaianRepository from '../repository/PenilaianRepository.supabase.js';
+import KandidatRepository from '../repository/KandidatRepository.supabase.js';
+import KriteriaRepository from '../repository/KriteriaRepository.supabase.js';
 
 class PenilaianService {
   /**

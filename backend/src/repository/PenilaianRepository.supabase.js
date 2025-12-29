@@ -46,6 +46,41 @@ class PenilaianRepository {
   }
 
   /**
+   * Get penilaian by kandidat ID (alias for getByKandidat)
+   */
+  async getByKandidatId(kandidat_id) {
+    return this.getByKandidat(kandidat_id);
+  }
+
+  /**
+   * Get penilaian by kandidat and kriteria
+   */
+  async getByKandidatAndKriteria(kandidat_id, kriteria_id) {
+    const { data, error } = await supabase
+      .from('penilaian')
+      .select('*')
+      .eq('kandidat_id', kandidat_id)
+      .eq('kriteria_id', kriteria_id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+  }
+
+  /**
+   * Get penilaian by kriteria ID
+   */
+  async getByKriteriaId(kriteria_id) {
+    const { data, error } = await supabase
+      .from('penilaian')
+      .select('*')
+      .eq('kriteria_id', kriteria_id);
+
+    if (error) throw new Error(`Failed to get penilaian: ${error.message}`);
+    return data || [];
+  }
+
+  /**
    * Create penilaian baru
    */
   async create(penilaianData) {

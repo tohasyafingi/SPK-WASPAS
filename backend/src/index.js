@@ -5,7 +5,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { initDatabase } from './database/db.js';
+import { initDatabase } from './database/db.supabase.js';
 import { runMigrations } from './database/migrations.js';
 
 // Import routes

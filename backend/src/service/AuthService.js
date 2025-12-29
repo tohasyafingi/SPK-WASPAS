@@ -4,7 +4,7 @@
  */
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import * as UserRepository from '../repository/UserRepository.js';
+import * as UserRepository from '../repository/UserRepository.supabase.js';
 import * as SessionService from './SessionService.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-change-in-production';
