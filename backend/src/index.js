@@ -5,8 +5,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { initDatabase } from './database/db.supabase.js';
-import { runMigrations } from './database/migrations.js';
+import { initDatabase, runMigrations } from './database/db.supabase.js';
 
 // Import routes
 import authRoutes from './routes/auth.js';
