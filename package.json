@@ -1,8 +1,3 @@
-/**
- * Root package.json untuk Railway monorepo
- * Merupakan meta-package yang tidak di-deploy
- * Hanya untuk menginformasikan Railway tentang workspace structure
- */
 {
   "name": "spk-waspas-monorepo",
   "version": "1.0.0",
