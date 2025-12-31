@@ -308,65 +308,19 @@ const PenilaianPage = () => {
 
             {selectedKandidat && (
               <>
-                <div style={{ 
-                  marginTop: '20px', 
-                  marginBottom: '15px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  color: '#2c3e50'
-                }}>
+                <div className="kriteria-section__title">
                   Kriteria dan Nilai:
                 </div>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: '1fr 1fr', 
-                  gap: '15px',
-                  alignItems: 'center'
-                }}>
-                  <div style={{ 
-                    fontWeight: 'bold',
-                    fontSize: '14px',
-                    color: '#2c3e50',
-                    paddingLeft: '5px'
-                  }}>
-                    Kriteria
-                  </div>
-                  <div style={{ 
-                    fontWeight: 'bold',
-                    fontSize: '14px',
-                    color: '#2c3e50',
-                    paddingLeft: '5px'
-                  }}>
-                    Nilai
-                  </div>
+                <div className="kriteria-grid">
+                  <div className="kriteria-grid__header">Kriteria</div>
+                  <div className="kriteria-grid__header">Nilai</div>
                   {kriterias.map(kr => {
                     const { max, step, placeholder, label } = getSkalaConfig(kr.skala);
                     return (
                       <React.Fragment key={kr.id}>
-                        <div style={{ 
-                          padding: '12px',
-                          backgroundColor: '#f8f9fa',
-                          border: '2px solid #e9ecef',
-                          borderRadius: '4px',
-                          fontSize: '14px',
-                          fontWeight: '500',
-                          color: '#2c3e50',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          gap: '8px'
-                        }}>
+                        <div className="kriteria-card">
                           <span>{kr.nama_kriteria}</span>
-                          <span style={{
-                            background: '#e3eaf7',
-                            color: '#1d4ed8',
-                            padding: '4px 8px',
-                            borderRadius: '12px',
-                            fontSize: '12px',
-                            fontWeight: 600
-                          }}>
-                            {label}
-                          </span>
+                          <span className="kriteria-badge">{label}</span>
                         </div>
                         <div className="form-group" style={{ marginBottom: '0' }}>
                           <input
