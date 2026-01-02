@@ -7,8 +7,12 @@ export default function MainLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
-    setCollapsed(!collapsed);
-    setSidebarOpen(!sidebarOpen);
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    if (isMobile) {
+      setSidebarOpen((open) => !open);
+    } else {
+      setCollapsed((state) => !state);
+    }
   };
 
   const closeSidebar = () => {
@@ -17,8 +21,8 @@ export default function MainLayout({ children }) {
 
   return (
     <>
-      <div className={`layout ${sidebarOpen ? 'sidebar-open' : ''}`}>
-        <Sidebar collapsed={collapsed} />
+      <div className={`layout ${sidebarOpen ? 'sidebar-open' : ''} ${collapsed ? 'layout--collapsed' : ''}`}>
+        <Sidebar collapsed={collapsed} onNavigate={closeSidebar} />
         <div className="layout__content">
           <HeaderBar onToggleSidebar={toggleSidebar} />
           <main className="content" onClick={closeSidebar}>
@@ -33,7 +37,7 @@ export default function MainLayout({ children }) {
             inset: 0,
             background: 'rgba(0,0,0,.5)',
             zIndex: 999,
-            display: 'none'
+            display: 'block'
           }}
           onClick={closeSidebar}
         />

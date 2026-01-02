@@ -30,28 +30,32 @@ const Icon = ({ name }) => {
   }
 };
 
-export default function Sidebar({ collapsed }) {
+export default function Sidebar({ collapsed, onNavigate }) {
+  const handleNavigate = () => {
+    if (typeof onNavigate === 'function') onNavigate();
+  };
+
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
       <div className="sidebar__brand">Nawwir Qulubana</div>
       <nav className="sidebar__nav">
-        <NavLink to="/" end className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}>
+        <NavLink to="/" end onClick={handleNavigate} className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}>
           <Icon name="dashboard" />
           <span>Dashboard</span>
         </NavLink>
-        <NavLink to="/kandidat" className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}>
+        <NavLink to="/kandidat" onClick={handleNavigate} className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}>
           <Icon name="kandidat" />
           <span>Kandidat</span>
         </NavLink>
-        <NavLink to="/kriteria" className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}>
+        <NavLink to="/kriteria" onClick={handleNavigate} className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}>
           <Icon name="kriteria" />
           <span>Kriteria</span>
         </NavLink>
-        <NavLink to="/penilaian" className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}>
+        <NavLink to="/penilaian" onClick={handleNavigate} className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}>
           <Icon name="penilaian" />
           <span>Penilaian</span>
         </NavLink>
-        <NavLink to="/hasil" className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}>
+        <NavLink to="/hasil" onClick={handleNavigate} className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}>
           <Icon name="hasil" />
           <span>Hasil WASPAS</span>
         </NavLink>
