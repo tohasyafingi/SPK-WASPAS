@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Form from '../components/Form';
 import Table from '../components/Table';
 import Modal from '../components/Modal';
 import { penilaianAPI, kandidatAPI, kriteriaAPI } from '../services/apiService';
@@ -22,12 +21,6 @@ const PenilaianPage = () => {
   const [tableLoading, setTableLoading] = useState(false);
   const [tableError, setTableError] = useState(null);
 
-  // Load data awal
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    loadAllData();
-  }, []);
-
   const loadAllData = async () => {
     try {
       setTableLoading(true);
@@ -48,23 +41,11 @@ const PenilaianPage = () => {
     }
   };
 
-  const penilaianFields = [
-    { 
-      name: 'kandidat_id', 
-      label: 'Kandidat', 
-      type: 'select', 
-      required: true,
-      options: kandidats.map(k => ({ value: k.id, label: k.nama }))
-    },
-    { 
-      name: 'kriteria_id', 
-      label: 'Kriteria', 
-      type: 'select', 
-      required: true,
-      options: kriterias.map(kr => ({ value: kr.id, label: kr.nama_kriteria }))
-    },
-    { name: 'nilai', label: 'Nilai', type: 'number', required: true, min: 0, step: 0.01 }
-  ];
+  // Load data awal
+  useEffect(() => {
+    loadAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getSkalaConfig = (skalaRaw) => {
     const skala = skalaRaw || '1-10';
@@ -384,6 +365,7 @@ const PenilaianPage = () => {
                 disabled
                 style={{ 
                   backgroundColor: '#f0f0f0',
+                  color: '#2c3e50',
                   cursor: 'not-allowed'
                 }}
               />
