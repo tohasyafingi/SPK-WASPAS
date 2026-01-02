@@ -15,7 +15,7 @@ const KriteriaPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editingData, setEditingData] = useState(null);
-  const { loading, error, request } = useApi();
+  const { loading, request } = useApi();
 
   const [tableLoading, setTableLoading] = useState(false);
   const [tableError, setTableError] = useState(null);
@@ -47,11 +47,6 @@ const KriteriaPage = () => {
     }
   ];
 
-  // Load data kriteria
-  useEffect(() => {
-    loadKriterias();
-  }, []);
-
   const loadKriterias = async () => {
     try {
       setTableLoading(true);
@@ -65,7 +60,28 @@ const KriteriaPage = () => {
     }
   };
 
+  // Load data kriteria
+  useEffect(() => {
+    loadKriterias();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const validateTotalBobot = (newBobot, excludeId = null) => {
+    const currentTotal = kriterias
+      .filter(k => k.id !== excludeId)
+      .reduce((sum, k) => sum + parseFloat(k.bobot || 0), 0);
+    const newTotal = currentTotal + parseFloat(newBobot || 0);
+    return newTotal;
+  };
+
   const handleCreate = async (formData) => {
+    const totalBobot = validateTotalBobot(formData.bobot);
+    
+    if (totalBobot > 1.0) {
+      alert(`Total bobot tidak boleh melebihi 1.0!\n\nTotal saat ini: ${totalBobot.toFixed(2)}`);
+      return;
+    }
+
     try {
       await request(() => kriteriaAPI.create(formData));
       setShowForm(false);
@@ -76,6 +92,13 @@ const KriteriaPage = () => {
   };
 
   const handleUpdate = async (formData) => {
+    const totalBobot = validateTotalBobot(formData.bobot, editingId);
+    
+    if (totalBobot > 1.0) {
+      alert(`Total bobot tidak boleh melebihi 1.0!\n\nTotal saat ini: ${totalBobot.toFixed(2)}`);
+      return;
+    }
+
     try {
       await request(() => kriteriaAPI.update(editingId, formData));
       setEditingId(null);
@@ -123,9 +146,28 @@ const KriteriaPage = () => {
     ) }
   ];
 
+  const totalBobotSaat = kriterias.reduce((sum, k) => sum + parseFloat(k.bobot || 0), 0);
+
   return (
     <div className="page-container">
       <h1>Manajemen Kriteria</h1>
+
+      <div style={{
+        backgroundColor: '#f0f8ff',
+        border: '1px solid #4CAF50',
+        borderRadius: '6px',
+        padding: '12px 16px',
+        marginBottom: '20px',
+        fontSize: '14px'
+      }}>
+        <strong>Total Bobot Kriteria:</strong> <span style={{
+          color: totalBobotSaat > 1.0 ? '#d32f2f' : '#4CAF50',
+          fontWeight: 'bold',
+          fontSize: '16px'
+        }}>{totalBobotSaat.toFixed(2)}</span> / 1.00
+        {totalBobotSaat > 1.0 && <span style={{ color: '#d32f2f', marginLeft: '8px' }}>❌ Melebihi batas maksimal!</span>}
+        {totalBobotSaat === 1.0 && <span style={{ color: '#4CAF50', marginLeft: '8px' }}>✅ Sempurna!</span>}
+      </div>
 
       <button 
         className="btn-primary"
