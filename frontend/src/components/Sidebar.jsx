@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import logo from '../assets/logo.webp';
 
 const Icon = ({ name }) => {
   // Minimal inline SVG icons to avoid extra deps
@@ -37,7 +38,10 @@ export default function Sidebar({ collapsed, onNavigate }) {
 
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
-      <div className="sidebar__brand">Nawwir Qulubana</div>
+      <div className="sidebar__brand">
+        <img src={logo} alt="Logo" className="sidebar__logo" />
+        <span>Nawwir Qulubana</span>
+      </div>
       <nav className="sidebar__nav">
         <NavLink to="/" end onClick={handleNavigate} className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}>
           <Icon name="dashboard" />

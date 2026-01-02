@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getSummary } from '../services/apiService';
+import logo from '../assets/logo.webp';
 
 const Card = ({ title, value, sub, accent }) => (
   <div className="dash-card">
@@ -41,8 +42,13 @@ export default function Dashboard() {
     <div className="dashboard-wrap">
       <div className="dash-hero">
         <div>
-          <p className="dash-kicker">Nawwir Qulubana</p>
-          <h1>Selamat Datang!</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
+            <img src={logo} alt="Logo Nawwir Quluubanaa" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+            <div>
+              <p className="dash-kicker">Nawwir Quluubanaa</p>
+              <h1>Selamat Datang!</h1>
+            </div>
+          </div>
           <p className="dash-sub">Pantau kandidat, kriteria, dan progres penilaian dalam satu layar.</p>
         </div>
         <div className="dash-actions">

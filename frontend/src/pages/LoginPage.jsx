@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { FiAlertCircle, FiEye, FiEyeOff, FiInfo } from 'react-icons/fi';
+import logo from '../assets/logo.webp';
 import './LoginPage.css';
 
 export default function LoginPage() {
@@ -56,7 +57,8 @@ export default function LoginPage() {
     <div className="login-container">
       <div className="login-box">
         <div className="login-header">
-          <h1>Nawwir Qulubana</h1>
+          <img src={logo} alt="Logo Nawwir Quluubanaa" className="login-logo" />
+          <h1>Nawwir Quluubanaa</h1>
           <p>Sistem Pendukung Keputusan Pemilihan Lurah</p>
         </div>
 
